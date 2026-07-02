@@ -171,3 +171,77 @@ To demonstrate the system to your research panel, follow this exact lifecycle se
 3. **Inner Tracking Hop:** Return to the scanner, switch the station location menu dropdown option to **Registrar Office**, and re-upload the file. The card states **"Location Tracked"**.
 4. **Dashboard Audit:** Refresh `/admin/dashboard`. The rows matrix will update live, displaying **Registrar Office** as their active location, alongside a permanent chronological history breadcrumb tracking trail matching their hops!
 5. **Check-Out:** Return to the scanner, change the selector option back to **Main Gate**, and upload the pass file one final time. The system approves departure, closes the data loops, and securely deactivates the token pass forever.
+
+
+## 🕹️ System Navigation & Testing Guide
+
+Follow this chronological walkthrough to demonstrate or test the entire system lifecycle—from registration to full campus movement tracking and final checkout.
+
+### Step 1: Open the Main Access Links
+Open your web browser (Google Chrome is recommended) and pull up the following three terminal interfaces in separate browser tabs:
+1. **Visitor Registration Portal:** `http://localhost:8000/register`
+2. **Gate Security Terminal Portal:** `http://localhost:8000/gate/scanner`
+3. **Admin Central Control Dashboard:** `http://localhost:8000/admin/dashboard`
+
+---
+
+### Step 2: Register a New Visitor
+1. Navigate to the **Visitor Registration Portal** tab.
+2. Fill out the form fields with test data:
+   * **Full Name:** `Juan Dela Cruz`
+   * **Contact Number:** `09123456789`
+   * **Purpose of Visit:** `Submit Documents`
+   * **Person to Visit:** `Dr. Smith (Registrar)`
+3. Click the **Generate Visitor QR Pass** button.
+4. On the success screen, review the visitor details card and click **DOWNLOAD QR PASS**. 
+5. Save the generated `.png` graphic file to your local drive.
+
+---
+
+### Step 3: Access the Protected Admin Dashboard
+1. Navigate to the **Admin Central Control Dashboard** tab.
+2. The system firewall will automatically redirect you to the **Admin Portal Security Lock** screen.
+3. Input the secure master access credentials:
+   * **Username:** `admin`
+   * **Password:** `password123`
+4. Click **Authorize Access**. The page will unlock, displaying the master logs table. It will initially show your new visitor as `PENDING` with no time stamps logged yet.
+
+---
+
+### Step 4: Simulate Gate Entry (Check-In)
+1. Navigate to the **Gate Security Terminal** tab.
+2. Ensure the *Select Scanning Station Location* dropdown menu is set to **"Main Gate (Entry/Exit)"**.
+3. Click the **SELECT DOWNLOADED QR PASS FILE** container zone.
+4. Select the `PASS_juan-dela-cruz.png` image file you downloaded in Step 2 and click Open.
+5. The terminal will process the file grid layer and display a vibrant green **"Access Granted"** notification screen. The visitor is now officially clocked into the university premises.
+
+---
+
+### Step 5: Track Campus Movements (Inter-Office Jops)
+Let's simulate the visitor moving across different campus departments.
+1. Click the **Return to Guard Terminal** button on the notification card.
+2. Click the location dropdown selector and switch it to **"Registrar's Office"**.
+3. Click the upload container and select the **exact same pass file** again.
+4. The system will process the token and render a green **"Location Tracked"** success card.
+5. *Optional:* Repeat this step by switching the dropdown to **"University Library"** and uploading the same pass file to log an additional movement row.
+
+---
+
+### Step 6: Audit Live Logs and Generate Printable Reports
+1. Return to the unlocked **Admin Central Control Dashboard** tab and click **Refresh**.
+2. Look at the data row for `Juan Dela Cruz` to verify the following live system upgrades:
+   * **Pass Status:** Shifted to a green `CHECKED IN` badge.
+   * **Current Location:** Dynamically prints **"University Library"** (or your last tracked station).
+   * **Full Tracking History Timeline:** Displays an interactive, chronological pin-drop map tracking trail showing their exact route: `📍 Main Gate (Entry)` ➡️ `📍 Registrar Office` ➡️ `📍 University Library` along with separate automatic time stamps for each hop!
+   * **Live Filters:** Test the search bar input at the top by typing `Library`. The table will hide irrelevant rows instantly.
+3. **Generate Official Document:** Click the green **🖨️ Print Logs Report** button. The browser print window will slide open, instantly stripping away all interactive buttons and search fields to deliver a clean, high-contrast paperwork log format ready for school inspectors.
+
+---
+
+### Step 7: Simulate Gate Exit (Check-Out Security Lockdown)
+1. Return to the **Gate Security Terminal** tab.
+2. Switch the station location dropdown menu selection back to **"Main Gate (Entry/Exit)"**.
+3. Upload the **exact same pass file** one final time.
+4. Because the central server processes that the visitor is already inside campus, it triggers the exit logic, displays a green **"Check-Out Approved"** screen, logs the departure timestamp, and deactivates the pass.
+5. Go back to your **Admin Dashboard** and click refresh. The "Currently On Campus" widget counter drops back down, the visitor's status shifts to `CHECKED OUT`, and their current position securely locks onto **"Left Campus"**. Any future attempt to upload this pass file will trigger an absolute red **"Pass Expired"** security alert rejection shield.
+

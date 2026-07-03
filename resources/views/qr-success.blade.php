@@ -10,7 +10,33 @@
         .checkmark { width: 44px; height: 44px; background: #d1fae5; color: #059669; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 15px; font-weight: bold; font-size: 20px; }
         h1 { font-size: 22px; color: #1e293b; margin: 0; font-weight: 800; }
         p { font-size: 13px; color: #94a3b8; margin: 5px 0 20px; }
-        .qr-box { background: #ffffff; padding: 15px; display: inline-block; border-radius: 12px; border: 1px solid #e2e8f0; margin-bottom: 20px; }
+        
+        /* Updated: Crisp border and standard alignment container */
+        .qr-box { 
+            background: #ffffff; 
+            padding: 15px; 
+            display: inline-block; 
+            border-radius: 12px; 
+            border: 1px solid #cbd5e1; 
+            margin-bottom: 20px; 
+        }
+
+        /* Added: Forces the matrix table to compress together without standard HTML gaps */
+        #qrCaptureArea table {
+            border-collapse: collapse;
+            margin: 0 auto;
+            background: #ffffff;
+        }
+
+        /* Added: Defines clean 20px blocks matching your download canvas scale */
+        #qrCaptureArea td {
+            width: 20px;
+            height: 20px;
+            padding: 0;
+            margin: 0;
+            transition: none;
+        }
+
         .data-box { text-align: left; background: #f8fafc; padding: 15px; border-radius: 12px; border: 1px solid #f1f5f9; font-size: 14px; color: #334155; margin-bottom: 20px; }
         .data-row { display: flex; justify-content: space-between; margin-bottom: 8px; }
         .label { font-weight: bold; color: #94a3b8; text-transform: uppercase; font-size: 10px; }
@@ -31,7 +57,7 @@
 
         <!-- Container housing your pure text matrix layout block -->
         <div class="qr-box" id="qrCaptureArea">
-            {!! $tableGrid !!}
+            {!! $qrCode !!}
         </div>
 
         <div class="data-box">
@@ -45,7 +71,7 @@
             </div>
         </div>
 
-        <!-- Re-added: Download Button Trigger -->
+        <!-- Download Button Trigger -->
         <button onclick="downloadPassImage()" class="download-btn">DOWNLOAD QR PASS</button>
         <a href="{{ route('visitor.register') }}" class="back-link">← Register Another Visitor</a>
     </div>
@@ -53,41 +79,48 @@
     <!-- Smart browser script to save text grids as standalone image attachments with metadata -->
     <script>
         function downloadPassImage() {
-            const table = document.querySelector("#qrCaptureArea table");
-            const tokenText = document.getElementById("tokenValue").innerText;
-            if (!table) return alert("System formatting error. Refresh the page.");
+    // Robust selector: grab the first actual child element inside the container
+    const qrContainer = document.getElementById("qrCaptureArea");
+    const svgElement = qrContainer ? qrContainer.querySelector("svg") || qrContainer.firstElementChild : null;
+    const tokenText = document.getElementById("tokenValue").innerText;
+    
+    if (!svgElement) return alert("System formatting error. Refresh the page.");
 
-            const rows = table.querySelectorAll("tr");
-            const cellSize = 20; 
-            const canvas = document.createElement("canvas");
-            canvas.width = 10 * cellSize; 
-            canvas.height = 10 * cellSize;
-            const ctx = canvas.getContext("2d");
+    // Convert the vector element to a clean, string-serialized format
+    const serializer = new XMLSerializer();
+    let svgString = serializer.serializeToString(svgElement);
+    
+    // Clean up any external XML declaration wrappers if they exist
+    if (!svgString.startsWith("<svg")) {
+        const svgMatch = svgString.match(/<svg[\s\S]*/);
+        if (svgMatch) svgString = svgMatch[0];
+    }
 
-            // Fill background canvas area
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-            // Scan the textual blocks map and paint real image pixel structures
-            rows.forEach((row, rIdx) => {
-                const cells = row.querySelectorAll("td");
-                cells.forEach((cell, cIdx) => {
-                    const bgColor = window.getComputedStyle(cell).backgroundColor;
-                    ctx.fillStyle = (bgColor === "rgb(15, 23, 42)" || bgColor === "#0f172a") ? "#0f172a" : "#ffffff";
-                    ctx.fillRect(cIdx * cellSize, rIdx * cellSize, cellSize, cellSize);
-                });
-            });
-
-            // Trigger standard browser asset attachment link download
-            const link = document.createElement("a");
-            link.href = canvas.toDataURL("image/png");
-            
-            // Encode the real token directly inside the filename so our offline engine can read it instantly!
-            link.download = "PASS_" + tokenText + ".png";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        }
+    const svgBlob = new Blob([svgString], { type: "image/svg+xml;charset=utf-8" });
+    const URLObj = window.URL || window.webkitURL || window;
+    const blobURL = URLObj.createObjectURL(svgBlob);
+    
+    const image = new Image();
+    image.onload = function() {
+        const canvas = document.createElement("canvas");
+        canvas.width = 300; 
+        canvas.height = 300;
+        const ctx = canvas.getContext("2d");
+        
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(image, 40, 40, 220, 220);
+        
+        const link = document.createElement("a");
+        link.href = canvas.toDataURL("image/png");
+        link.download = "PASS_" + tokenText + ".png";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URLObj.revokeObjectURL(blobURL);
+    };
+    image.src = blobURL;
+}
     </script>
 
 </body>

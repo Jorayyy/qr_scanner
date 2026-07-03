@@ -6,6 +6,7 @@ use App\Models\Visitor;
 use App\SimpleQR;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode; // 1. Ensured QR Facade is imported here
 
 class VisitorController extends Controller
 {
@@ -15,7 +16,7 @@ class VisitorController extends Controller
         return view('register');
     }
 
-        // 2. Handle visitor form submission and generate pass data matrix
+    // 2. Handle visitor form submission and generate pass data matrix
     public function storeVisitor(Request $request)
     {
         $request->validate([
@@ -38,16 +39,20 @@ class VisitorController extends Controller
             'status' => 'pending'
         ]);
 
-        // Draw the stable text matrix grid blocks natively
-        $tableGrid = SimpleQR::generateTableGrid($uniqueToken);
+        // 2. Swapped out the old SimpleQR custom table code for the industry-standard high-res QR code
+        $qrCode = QrCode::size(220)
+            ->color(15, 23, 42) // #0f172a Slate Navy
+            ->margin(1)
+            ->generate($visitor->qr_code_token);
 
-        return view('qr-success', compact('visitor', 'tableGrid'));
+        // 3. Replaced 'tableGrid' with 'qrCode' inside the compact array
+        return view('qr-success', compact('visitor', 'qrCode'));
     }
 
 
     // 3. Handle Campus Scans and Multi-Office Department Tracking Logic
-        public function verifyScan($token, $location = 'Main Gate')
-        {
+    public function verifyScan($token, $location = 'Main Gate')
+    {
         $visitor = Visitor::where('qr_code_token', $token)->first();
 
         if (!$visitor) {
@@ -109,7 +114,7 @@ class VisitorController extends Controller
         return view('admin-dashboard', compact('allVisitors', 'totalRegistered', 'currentlyInside', 'totalCheckedOut'));
     }
 
-        // Show the Secure Login Page
+    // Show the Secure Login Page
     public function showLoginForm()
     {
         return view('admin-login');

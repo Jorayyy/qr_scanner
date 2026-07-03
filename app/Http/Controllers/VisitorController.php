@@ -15,11 +15,12 @@ class VisitorController extends Controller
         return view('register');
     }
 
-    // 2. Handle visitor form submission and generate pass data matrix
+        // 2. Handle visitor form submission and generate pass data matrix
     public function storeVisitor(Request $request)
     {
         $request->validate([
             'full_name' => 'required|string|max:255',
+            'id_number' => 'required|string|max:50', // 1. Added ID Number validation
             'contact_number' => 'required|string|max:20',
             'purpose_of_visit' => 'required|string|max:255',
             'person_to_visit' => 'required|string|max:255',
@@ -29,6 +30,7 @@ class VisitorController extends Controller
 
         $visitor = Visitor::create([
             'full_name' => $request->full_name,
+            'id_number' => $request->id_number, // 2. Added ID Number to save into the database
             'contact_number' => $request->contact_number,
             'purpose_of_visit' => $request->purpose_of_visit,
             'person_to_visit' => $request->person_to_visit,
@@ -41,6 +43,7 @@ class VisitorController extends Controller
 
         return view('qr-success', compact('visitor', 'tableGrid'));
     }
+
 
     // 3. Handle Campus Scans and Multi-Office Department Tracking Logic
         public function verifyScan($token, $location = 'Main Gate')

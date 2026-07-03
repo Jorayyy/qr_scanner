@@ -142,6 +142,11 @@
                 <label>Contact Number</label>
                 <input type="text" name="contact_number" placeholder="09123456789" required>
             </div>
+             
+            <div class="form-group mb-3">
+                <label for="id_number" class="form-label">ID NUMBER</label>
+                <input type="text" name="id_number" id="id_number" class="form-control" placeholder="e.g., 2026-12345" required>
+            </div>
 
             <div class="form-group">
                 <label>Purpose of Visit</label>

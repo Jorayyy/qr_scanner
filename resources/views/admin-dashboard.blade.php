@@ -93,6 +93,7 @@
                 <thead>
                     <tr>
                         <th>Visitor Name</th>
+                        <th>ID NUMBER</th>
                         <th>Purpose of Visit</th>
                         <th>Person Visiting</th>
                         <th>Status</th>
@@ -103,57 +104,82 @@
                     </tr>
                 </thead>
                 <tbody id="visitorTableBody">
-                    @forelse($allVisitors as $v)
-                        <tr class="visitor-row">
-                            <td style="font-weight: 600; color: #0f172a;">{{ $v->full_name }}</td>
-                            <td>{{ $v->purpose_of_visit }}</td>
-                            <td>{{ $v->person_to_visit }}</td>
-                            <td>
-                                <span class="badge {{ $v->status }}">
-                                    {{ str_replace('_', ' ', $v->status) }}
-                                </span>
-                            </td>
-                            <td>
-                                <span style="font-weight: 700; color: #3b82f6;">{{ $v->current_location ?? 'Main Gate' }}</span>
-                            </td>
-                            <td>
-                                <div style="display: flex; flex-wrap: wrap; gap: 4px; max-width: 300px;">
-                                    @forelse($v->movements as $move)
-                                        <span style="font-size: 10px; background: #f1f5f9; color: #475569; padding: 3px 6px; border-radius: 4px; font-weight: 600; border: 1px solid #e2e8f0; display: inline-block;">
-                                            📍 {{ $move->location_name }} <span style="color:#94a3b8; font-size:9px;">({{ $move->created_at->format('h:i A') }})</span>
-                                        </span>
-                                    @empty
-                                        <span style="color: #94a3b8; font-size: 12px; font-style: italic;">No logs captured yet.</span>
-                                    @endforelse
-                                </div>
-                            </td>
-                            <td style="color: #64748b; font-size: 13px;">
-                                {{ $v->checked_in_at ? \Carbon\Carbon::parse($v->checked_in_at)->format('M d, h:i A') : '—' }}
-                            </td>
-                            <td style="color: #64748b; font-size: 13px;">
-                                {{ $v->checked_out_at ? \Carbon\Carbon::parse($v->checked_out_at)->format('M d, h:i A') : '—' }}
-                            </td>
-                        </tr>
-                    @empty
-                        <tr id="emptyRow">
-                            <td colspan="8" style="text-align: center; color: #94a3b8; padding: 40px;">No campus visitor records found.</td>
-                        </tr>
-                    @endforelse
-                </tbody>
+    @forelse($allVisitors as $v)
+        <tr>
+            <!-- 1. Name Column -->
+            <td><strong>{{ $v->full_name }}</strong></td>
+            
+            <!-- 2. ID Number Column -->
+            <td>{{ $v->id_number ?? 'N/A' }}</td>
+            
+            <!-- 3. Purpose Column -->
+            <td>{{ $v->purpose_of_visit }}</td>
+            
+            <!-- 4. Person Visiting Column -->
+            <td>{{ $v->person_to_visit }}</td>
+            
+            <!-- Check your remaining columns below to ensure they use $v instead of $visitor -->
+            <td>{{ $v->status }}</td>
+
+            <td>{{ $v->current_location }}</td>
+
+            <td>
+            <!-- Look at your original code for the timeline loop here. It probably looks like: -->
+            @foreach($v->movements as $movement)
+            <div>{{ $movement->location_name }} <small>({{ $movement->created_at->format('h:i A') }})</small></div>
+            @endforeach
+            </td>
+
+            <!-- 8. Checked In At -->
+           <td>{{ $v->checked_in_at ? $v->checked_in_at->format('M d, h:i A') : '—' }}</td>
+    
+           <!-- 9. Checked Out At -->
+           <td>{{ $v->checked_out_at ? $v->checked_out_at->format('M d, h:i A') : '—' }}</td>
+            
+            <!-- ... your tracking history timeline and check-in times blocks ... -->
+        </tr>
+    @empty
+        <tr>
+            <td colspan="9" style="text-align: center;">No visitor logs found.</td>
+        </tr>
+    @endforelse
+</tbody>
+
             </table>
+                <!-- Dynamic client-side layout navigator component -->
+        <div class="pagination-bar">
+            <div class="pagination-info">
+                Showing 1 to {{ $allVisitors->count() }} of {{ $allVisitors->count() }} entries
+            </div>
+            <div class="btn-group">
+                <button class="pagination-btn" disabled>Previous</button>
+                <button class="pagination-btn" disabled>Next</button>
+            </div>
         </div>
 
-        <!-- Dynamic client-side layout navigator component -->
-        @if($allVisitors->count() > 0)
-            <div class="pagination-bar">
-                <div class="pagination-info" id="paginationInfo">Loading pagination indexes...</div>
-                <div class="btn-group">
-                    <button class="pagination-btn" id="prevBtn" onclick="changePage(-1)">Previous</button>
-                    <button class="pagination-btn" id="nextBtn" onclick="changePage(1)">Next</button>
-                </div>
-            </div>
-        @endif
-    </div>
+    </div> <!-- Close container -->
+
+    <script>
+        // Simple search filter script for the search bar
+        document.getElementById('dashboardSearch').addEventListener('keyup', function() {
+            let filter = this.value.toLowerCase();
+            let rows = document.querySelectorAll('#visitorTableBody tr');
+            
+            rows.forEach(row => {
+                let text = row.textContent.toLowerCase();
+                if(text.includes(filter)) {
+                    row.style.display = '';
+                } else {
+                    if(!row.querySelector('td[colspan]')) {
+                        row.style.display = 'none';
+                    }
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+
 
     <!-- Combined Pagination + Live Filter Engine Script -->
     <script>

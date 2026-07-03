@@ -162,6 +162,15 @@
                 Generate Visitor QR Pass
             </button>
         </form>
+        
+        <!-- Add onsubmit to your form tag -->
+<form action="{{ route('visitor.store') }}" method="POST" onsubmit="this.querySelector('button[type=submit]').disabled=true;">
+    @csrf
+    <!-- Your input fields here... -->
+    
+    <button type="submit" class="btn btn-primary">Register</button>
+</form>
+
     </div>
 
 </body>

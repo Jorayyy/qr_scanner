@@ -103,15 +103,32 @@ class VisitorController extends Controller
     // 4. Show the Administration Log Dashboard Panel with Search and Analytics
     public function showAdminDashboard()
     {
-        // Fetch all visitor rows sorted by the newest registration first
         $allVisitors = Visitor::orderBy('created_at', 'desc')->get();
         
-        // Calculate basic dashboard analytics
         $totalRegistered = $allVisitors->count();
         $currentlyInside = Visitor::where('status', 'checked_in')->count();
         $totalCheckedOut = Visitor::where('status', 'checked_out')->count();
+        $totalPending = Visitor::where('status', 'pending')->count(); // Added for chart
 
-        return view('admin-dashboard', compact('allVisitors', 'totalRegistered', 'currentlyInside', 'totalCheckedOut'));
+        // Group visitors by day for the bar chart layout
+        $dailyLogs = Visitor::selectRaw('DATE(created_at) as date, COUNT(*) as count')
+            ->groupBy('date')
+            ->orderBy('date', 'asc')
+            ->take(7) // Grabs the last 7 active days
+            ->get();
+
+        $chartLabels = $dailyLogs->pluck('date')->toArray();
+        $chartData = $dailyLogs->pluck('count')->toArray();
+
+        return view('admin-dashboard', compact(
+            'allVisitors', 
+            'totalRegistered', 
+            'currentlyInside', 
+            'totalCheckedOut',
+            'totalPending',
+            'chartLabels',
+            'chartData'
+        ));
     }
 
     // Show the Secure Login Page
@@ -143,5 +160,19 @@ class VisitorController extends Controller
         session()->forget('admin_authenticated');
         return redirect()->route('admin.login');
     }
+
+        // 5. Delete a specific visitor record permanently
+    public function destroyVisitor($id)
+    {
+        $visitor = Visitor::findOrFail($id);
+        
+        // This automatically cleans up their tracking trail movements too
+        $visitor->movements()->delete(); 
+        
+        $visitor->delete();
+
+        return back()->with('success', 'Visitor record deleted successfully!');
+    }
+
 
 }

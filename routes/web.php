@@ -35,3 +35,7 @@ Route::get('/verify-scan/{token}/{location?}', [App\Http\Controllers\VisitorCont
 Route::get('/admin/login', [App\Http\Controllers\VisitorController::class, 'showLoginForm'])->name('admin.login');
 Route::post('/admin/login', [App\Http\Controllers\VisitorController::class, 'processLogin'])->name('admin.login.submit');
 Route::post('/admin/logout', [App\Http\Controllers\VisitorController::class, 'processLogout'])->name('admin.logout');
+
+
+// Put this line near your other admin routes
+Route::delete('/admin/visitor/{id}', [VisitorController::class, 'destroyVisitor'])->name('admin.delete-visitor');

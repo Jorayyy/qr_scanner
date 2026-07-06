@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ env('APP_NAME', 'State University') }} - Gate Security Terminal</title>
     <!-- NO EXTERNAL NETWORK SCRIPT TAGS AT ALL HERE - 100% OFFLINE SAFE -->
+
+  
     <style>
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
@@ -188,125 +190,256 @@
             background: #1e293b; 
         }
     </style>
+        <!-- PLACE THIS EXACTLY ABOVE YOUR CLOSING </head> TAG -->
+    <script src="https://unpkg.com" type="text/javascript"></script>
+</head>
+
 </head>
 <body>
 
-    <div class="card">
-        <!-- University Branding Header -->
-        <div class="text-center">
-            <div class="logo-circle">
-                <span class="logo-text">
-                    {{ strtoupper(substr(env('APP_NAME', 'SU'), 0, 2)) }}
-                </span>
-            </div>
-            <h1>Gate Security Terminal</h1>
-            <p class="subtitle">Upload a pass photo file or use manual entry fallback</p>
+  <div class="card">
+    <!-- University Branding Header -->
+    <div class="text-center">
+        <div class="logo-circle">
+            <span class="logo-text">
+                {{ strtoupper(substr(env('APP_NAME', 'SU'), 0, 2)) }}
+            </span>
         </div>
-
-        <div class="form-group">
-            <label for="stationLocation">Select Scanning Station Location</label>
-            <select id="stationLocation">
-                <option value="Main Gate">Main Gate (Entry/Exit)</option>
-                <option value="Registrar Office">Registrar's Office</option>
-                <option value="Dean Office">Dean's Office</option>
-                <option value="Accounting Department">Accounting Department</option>
-                <option value="University Library">University Library</option>
-            </select>
-        </div>
-
-        <input type="file" id="qrFileInput" accept="image/*" style="display: none;">
-
-        <div class="upload-zone" onclick="document.getElementById('qrFileInput').click()">
-            <span class="upload-icon">📁</span>
-            <span class="upload-text">Select Downloaded QR Pass File</span>
-        </div>
-
-        <div id="result-box">Terminal standby engine active.</div>
-
-        <div class="divider">Or Manual Input Entry</div>
-
-        <div class="manual-box">
-            <label for="tokenField">Pass Token ID Code</label>
-            <div class="input-group">
-                <input type="text" id="tokenField" placeholder="Paste token code here..." autocomplete="off">
-                <button onclick="verifyManualToken()" class="go-btn">Verify</button>
-            </div>
-        </div>
+        <h1>Gate Security Terminal</h1>
+        <p class="subtitle">Upload a pass photo file or use manual entry fallback</p>
     </div>
 
-    <script>
+    <div class="form-group">
+        <label for="stationLocation">Select Scanning Station Location</label>
+        <select id="stationLocation">
+            <option value="Main Gate">Main Gate (Entry/Exit)</option>
+            <option value="Registrar Office">Registrar's Office</option>
+            <option value="Dean Office">Dean's Office</option>
+            <option value="Accounting Department">Accounting Department</option>
+            <option value="University Library">University Library</option>
+        </select>
+    </div>
+
+    <input type="file" id="qrFileInput" accept="image/*" style="display: none;">
+
+    <!-- PLACE THIS INSTEAD OF YOUR OLD SCANNER CONTAINER CONTAINER -->
+<div id="camera-viewport-wrap" style="display: none; width: 100%; max-width: 400px; margin: 0 auto 20px; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; position: relative;">
+    <!-- NATIVE ELEMENT: Video stream maps straight to this element -->
+    <video id="native-video-preview" autoplay playsinline style="width: 100%; height: auto; display: block; background: #000;"></video>
+    
+    <button type="button" id="close-camera-btn" style="width: 100%; padding: 12px; background: #ef4444; color: white; border: none; font-weight: 600; cursor: pointer; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
+        ✕ Close Live Scanner
+    </button>
+</div>
+
+
+    <div id="camera-viewport-wrap" style="display: none; width: 100%; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 20px; border: 1px solid #cbd5e1;">
+    <div id="qr-reader" style="width: 100%;"></div>
+    <button type="button" id="close-camera-btn" style="width: 100%; padding: 12px; background: #ef4444; color: white; border: none; font-weight: 600; cursor: pointer; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
+        ✕ Close Live Scanner
+    </button>
+</div>
+
+    <!-- Your File Upload Box Area -->
+    <div id="original-dropzone" class="upload-zone" onclick="document.getElementById('qrFileInput').click()">
+        <span class="upload-icon">📁</span>
+        <span class="upload-text">Select Downloaded QR Pass File</span>
+    </div>
+
+    <!-- PLACE THIS RIGHT BELOW THE CLOSING </div> OF YOUR UPLOAD ZONE -->
+<div id="camera-btn-wrap" class="form-group text-center" style="margin-top: 16px; margin-bottom: 0;">
+    <button type="button" id="open-camera-btn" style="padding: 12px 20px; background-color: #0f172a; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; transition: background 0.15s ease;">
+        📷 Open Phone Camera Scanner
+    </button>
+</div>
+
+
+    <div id="result-box">Terminal standby engine active.</div>
+
+    <div class="divider">Or Manual Input Entry</div>
+
+    <div class="manual-box">
+        <label for="tokenField">Pass Token ID Code</label>
+        <div class="input-group">
+            <input type="text" id="tokenField" placeholder="Paste token code here..." autocomplete="off">
+            <button id="verifyBtn" onclick="verifyManualToken()" class="go-btn">Verify</button>
+        </div>
+    </div>
+</div>
+
+
+        <script>
+    let localStreamTrack = null;
+    let frameDetectionInterval = null;
+
     const fileSelector = document.getElementById('qrFileInput');
     const resultDisplay = document.getElementById('result-box');
+    const openCameraBtn = document.getElementById('open-camera-btn');
+    const closeCameraBtn = document.getElementById('close-camera-btn');
+    const cameraViewportWrap = document.getElementById('camera-viewport-wrap');
+    const originalDropzone = document.getElementById('original-dropzone');
+    const cameraBtnWrap = document.getElementById('camera-btn-wrap');
+    const tokenField = document.getElementById('tokenField');
+    const videoPreviewElement = document.getElementById('native-video-preview');
 
-    fileSelector.addEventListener('change', e => {
-        if (!e.target.files || e.target.files.length === 0) return;
-        
-        const file = e.target.files[0];
-        resultDisplay.style.color = "#e2e8f0";
-        resultDisplay.innerText = "Analyzing file grid matrix layers...";
+    // =================================================================
+    // NATIVE OFFLINE LIVE SCANNER CYCLE ENGINE
+    // =================================================================
+    if (openCameraBtn) {
+        openCameraBtn.addEventListener('click', () => {
+            if (!('BarcodeDetector' in window)) {
+                alert("Browser Error: Native barcode detector engine is missing or disabled on this device software.");
+                return;
+            }
 
-        const selectedLocation = document.getElementById("stationLocation").value;
+            if (originalDropzone) originalDropzone.style.display = 'none';
+            if (cameraBtnWrap) cameraBtnWrap.style.display = 'none';
+            if (cameraViewportWrap) cameraViewportWrap.style.display = 'block';
 
-        // 1. FIRST PRIORITY CHECK: Fallback back to filename if it matches the PC pattern
-        const filename = file.name;
-        if (filename.startsWith("PASS_")) {
-            const extractedToken = filename.replace("PASS_", "").split('.')[0];
-            routeToVerify(extractedToken, selectedLocation);
-            return;
+            resultDisplay.style.color = "#475569";
+            resultDisplay.innerText = "Requesting device camera interface access...";
+
+            // Access hardware video feeds natively without third party scripts
+            navigator.mediaDevices.getUserMedia({
+                video: { facingMode: { ideal: "environment" } } // Requests rear camera lens layout
+            })
+            .then((stream) => {
+                localStreamTrack = stream;
+                videoPreviewElement.srcObject = stream;
+                resultDisplay.innerText = "Live tracking canvas stream active.";
+
+                // Initialize native parsing engine matrix directly
+                const qrDetectorEngine = new BarcodeDetector({ formats: ['qr_code'] });
+
+                // Frame processor loop capturing images continuously
+                frameDetectionInterval = setInterval(() => {
+                    if (videoPreviewElement.readyState === videoPreviewElement.HAVE_ENOUGH_DATA) {
+                        qrDetectorEngine.detect(videoPreviewElement)
+                            .then((barcodes) => {
+                                if (barcodes.length > 0) {
+                                    const cleanToken = barcodes[0].rawValue.trim();
+                                    const selectedLocation = document.getElementById("stationLocation").value;
+
+                                    if (tokenField) tokenField.value = cleanToken;
+
+                                    resultDisplay.style.color = "#10b981";
+                                    resultDisplay.innerText = "Pass token matched natively! Routing...";
+
+                                    stopNativeScanner();
+                                    routeToVerify(cleanToken, selectedLocation);
+                                }
+                            })
+                            .catch((err) => console.debug("Parsing loop interval trace skipped: ", err));
+                    }
+                }, 250); // Checks 4 frames per second to optimize battery consumption on devices
+            })
+            .catch((err) => {
+                console.error("Native hardware stream failed:", err);
+                alert("Hardware Blocked: Check permission flags or confirm address matches HTTPS protocol completely.");
+                stopNativeScanner();
+            });
+        });
+    }
+
+    function stopNativeScanner() {
+        // Halt analytical parsing timer arrays
+        if (frameDetectionInterval) {
+            clearInterval(frameDetectionInterval);
+            frameDetectionInterval = null;
         }
 
-        // 2. SMART MOBILE PASS CHECKER: Reads the actual image pixels directly
-        // This is a 100% self-contained fallback scanner that reads phone screenshots instantly
-        const img = new Image();
-        img.src = URL.createObjectURL(file);
-        
-        img.onload = function() {
-            const canvas = document.createElement('canvas');
-            const ctx = canvas.getContext('2d');
-            canvas.width = img.width;
-            canvas.height = img.height;
-            ctx.drawImage(img, 0, 0, img.width, img.height);
-            
-            // Clean up cache links securely
-            URL.revokeObjectURL(img.src);
-            
-            // Native micro detector layout search logic loop built into browsers
-            if ('BarcodeDetector' in window) {
-                const detector = new BarcodeDetector({ formats: ['qr_code'] });
-                detector.detect(canvas)
-                    .then(barcodes => {
-                        if (barcodes.length > 0) {
-                            resultDisplay.style.color = "#10b981";
-                            resultDisplay.innerText = "Pass token matched via matrix! Routing...";
-                            routeToVerify(barcodes[0].rawValue.trim(), selectedLocation);
-                        } else {
-                            // If the native script doesn't find a code, fallback to using the phone's full file string hash name
-                            // This matches those random string hashes phone downloads sometimes have!
-                            const genericName = filename.split('.')[0];
-                            if (genericName.length > 20) {
-                                routeToVerify(genericName, selectedLocation);
-                            } else {
-                                throwError();
-                            }
-                        }
-                    })
-                    .catch(() => throwError());
-            } else {
-                // If it's an older phone without a Barcode Detector, try extracting the clean hash name directly
-                const genericName = filename.split('.')[0];
-                if (genericName.length > 20) {
-                    routeToVerify(genericName, selectedLocation);
-                } else {
-                    throwError();
-                }
-            }
-        };
+        // Drop physical stream hardware connections cleanly
+        if (localStreamTrack) {
+            localStreamTrack.getTracks().forEach(track => track.stop());
+            localStreamTrack = null;
+        }
 
-        img.onerror = function() {
-            throwError();
-            URL.revokeObjectURL(img.src);
-        };
-    });
+        if (videoPreviewElement) {
+            videoPreviewElement.srcObject = null;
+        }
+
+        resetUI();
+    }
+
+    function resetUI() {
+        if (cameraViewportWrap) cameraViewportWrap.style.display = 'none';
+        if (originalDropzone) originalDropzone.style.display = 'block';
+        if (cameraBtnWrap) cameraBtnWrap.style.display = 'block';
+        
+        resultDisplay.style.color = "#475569";
+        resultDisplay.innerText = "Terminal standby engine active.";
+    }
+
+    if (closeCameraBtn) {
+        closeCameraBtn.addEventListener('click', stopNativeScanner);
+    }
+
+    // =================================================================
+    // PRE-EXISTING FILE SELECTOR IMAGE PROCESSOR UTILITIES
+    // =================================================================
+    if (fileSelector) {
+        fileSelector.addEventListener('change', e => {
+            if (!e.target.files || e.target.files.length === 0) return;
+            
+            const file = e.target.files[0];
+            resultDisplay.style.color = "#cbd5e1";
+            resultDisplay.innerText = "Analyzing file grid matrix layers...";
+
+            const selectedLocation = document.getElementById("stationLocation").value;
+            const filename = file.name;
+
+            if (filename.startsWith("PASS_")) {
+                const extractedToken = filename.replace("PASS_", "").split('.')[0];
+                routeToVerify(extractedToken, selectedLocation);
+                return;
+            }
+
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                ctx.drawImage(img, 0, 0, img.width, img.height);
+                
+                URL.revokeObjectURL(img.src);
+                
+                if ('BarcodeDetector' in window) {
+                    const detector = new BarcodeDetector({ formats: ['qr_code'] });
+                    detector.detect(canvas)
+                        .then(barcodes => {
+                            if (barcodes.length > 0) {
+                                resultDisplay.style.color = "#10b981";
+                                resultDisplay.innerText = "Pass token matched via matrix! Routing...";
+                                routeToVerify(barcodes[0].rawValue.trim(), selectedLocation);
+                            } else {
+                                const genericName = filename.split('.')[0];
+                                if (genericName.length > 20) {
+                                    routeToVerify(genericName, selectedLocation);
+                                } else {
+                                    throwError();
+                                }
+                            }
+                        })
+                        .catch(() => throwError());
+                } else {
+                    const genericName = filename.split('.')[0];
+                    if (genericName.length > 20) {
+                        routeToVerify(genericName, selectedLocation);
+                    } else {
+                        throwError();
+                    }
+                }
+            };
+
+            img.onerror = function() {
+                throwError();
+                URL.revokeObjectURL(img.src);
+            };
+        });
+    }
 
     function throwError() {
         resultDisplay.style.color = "#ef4444";
@@ -325,6 +458,7 @@
     }
     </script>
 
-
 </body>
 </html>
+
+

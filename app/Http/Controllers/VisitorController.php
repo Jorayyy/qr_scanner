@@ -6,7 +6,8 @@ use App\Models\Visitor;
 use App\SimpleQR;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use SimpleSoftwareIO\QrCode\Facades\QrCode; // 1. Ensured QR Facade is imported here
+use Illuminate\Support\Facades\Auth; // ⭐ FIXED: Moved to top
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class VisitorController extends Controller
 {
@@ -21,7 +22,7 @@ class VisitorController extends Controller
     {
         $request->validate([
             'full_name' => 'required|string|max:255',
-            'id_number' => 'required|string|max:50', // 1. Added ID Number validation
+            'id_number' => 'required|string|max:50',
             'contact_number' => 'required|string|max:20',
             'purpose_of_visit' => 'required|string|max:255',
             'person_to_visit' => 'required|string|max:255',
@@ -31,7 +32,7 @@ class VisitorController extends Controller
 
         $visitor = Visitor::create([
             'full_name' => $request->full_name,
-            'id_number' => $request->id_number, // 2. Added ID Number to save into the database
+            'id_number' => $request->id_number,
             'contact_number' => $request->contact_number,
             'purpose_of_visit' => $request->purpose_of_visit,
             'person_to_visit' => $request->person_to_visit,
@@ -39,16 +40,13 @@ class VisitorController extends Controller
             'status' => 'pending'
         ]);
 
-        // 2. Swapped out the old SimpleQR custom table code for the industry-standard high-res QR code
         $qrCode = QrCode::size(220)
-            ->color(15, 23, 42) // #0f172a Slate Navy
+            ->color(15, 23, 42)
             ->margin(1)
             ->generate($visitor->qr_code_token);
 
-        // 3. Replaced 'tableGrid' with 'qrCode' inside the compact array
         return view('qr-success', compact('visitor', 'qrCode'));
     }
-
 
     // 3. Handle Campus Scans and Multi-Office Department Tracking Logic
     public function verifyScan($token, $location = 'Main Gate')
@@ -71,7 +69,6 @@ class VisitorController extends Controller
                 'checked_out_at' => now(),
             ]);
             
-            // Log the exit hop into their history trail!
             \App\Models\Movement::create(['visitor_id' => $visitor->id, 'location_name' => 'Left Campus']);
 
             return view('scan-result', ['success' => true, 'title' => 'Check-Out Approved', 'message' => 'Visitor has left the university.', 'visitor' => $visitor]);
@@ -81,7 +78,6 @@ class VisitorController extends Controller
         if ($visitor->status === 'checked_in' && $location !== 'Main Gate') {
             $visitor->update(['current_location' => $location]);
             
-            // Record this office scan permanently into the timeline history logs!
             \App\Models\Movement::create(['visitor_id' => $visitor->id, 'location_name' => $location]);
 
             return view('scan-result', ['success' => true, 'title' => 'Location Tracked', 'message' => "Visitor layout movement successfully tracked at: {$location}.", 'visitor' => $visitor]);
@@ -94,7 +90,6 @@ class VisitorController extends Controller
             'checked_in_at' => now(),
         ]);
         
-        // Stamp their very first location trail line!
         \App\Models\Movement::create(['visitor_id' => $visitor->id, 'location_name' => 'Main Gate (Entry)']);
 
         return view('scan-result', ['success' => true, 'title' => 'Access Granted', 'message' => 'Welcome to campus!', 'visitor' => $visitor]);
@@ -108,13 +103,12 @@ class VisitorController extends Controller
         $totalRegistered = $allVisitors->count();
         $currentlyInside = Visitor::where('status', 'checked_in')->count();
         $totalCheckedOut = Visitor::where('status', 'checked_out')->count();
-        $totalPending = Visitor::where('status', 'pending')->count(); // Added for chart
+        $totalPending = Visitor::where('status', 'pending')->count();
 
-        // Group visitors by day for the bar chart layout
         $dailyLogs = Visitor::selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->groupBy('date')
             ->orderBy('date', 'asc')
-            ->take(7) // Grabs the last 7 active days
+            ->take(7)
             ->get();
 
         $chartLabels = $dailyLogs->pluck('date')->toArray();
@@ -137,42 +131,40 @@ class VisitorController extends Controller
         return view('admin-login');
     }
 
-    // Process Login Form Submission
+    // Process Login Request
     public function processLogin(Request $request)
     {
         $request->validate([
-            'username' => 'required|string',
-            'password' => 'required|string',
+            'username' => ['required', 'string'],
+            'password' => ['required', 'string'],
         ]);
 
-        // HARDCODED SECURE DEMO CREDENTIALS
-        if ($request->username === 'admin' && $request->password === 'password123') {
-            session(['admin_authenticated' => true]);
-            return redirect()->route('admin.dashboard');
+        if (Auth::attempt(['email' => $request->username, 'password' => $request->password])) {
+            $request->session()->regenerate();
+            return redirect()->intended(route('admin.dashboard'));
         }
 
-        return back()->with('error', 'Invalid admin security credentials!');
+        return back()->withInput()->with('error', 'The provided security credentials do not match our records.');
     }
 
     // Process Logout Request
-    public function processLogout()
+    public function processLogout(Request $request)
     {
-        session()->forget('admin_authenticated');
-        return redirect()->route('admin.login');
+        Auth::logout(); // ⭐ FIXED: Properly clear standard Laravel Auth session guard data
+        
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return redirect()->route('login')->with('success', 'You have been successfully logged out.');
     }
 
-        // 5. Delete a specific visitor record permanently
+    // 5. Delete a specific visitor record permanently
     public function destroyVisitor($id)
     {
         $visitor = Visitor::findOrFail($id);
-        
-        // This automatically cleans up their tracking trail movements too
         $visitor->movements()->delete(); 
-        
         $visitor->delete();
 
         return back()->with('success', 'Visitor record deleted successfully!');
     }
-
-
 }

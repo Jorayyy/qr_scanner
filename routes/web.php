@@ -14,28 +14,38 @@ Route::get('/register', [VisitorController::class, 'showRegisterForm'])->name('v
 // The Action that handles form submissions
 Route::post('/register', [VisitorController::class, 'storeVisitor'])->name('visitor.store');
 
-// Route that verifies and deactivates a scanned pass
-Route::get('/verify-scan/{token}', [VisitorController::class, 'verifyScan'])->name('visitor.verify');
-
-// The Administration Dashboard Overview URL
-Route::get('/admin/dashboard', [App\Http\Controllers\VisitorController::class, 'showAdminDashboard'])->name('admin.dashboard');
-
-// The URL path for the camera scanner page
-Route::get('/gate/scanner', function () {
-    return view('gate-scanner');
-})->name('gate.scanner');
-
-// Route that explicitly accepts both the unique tracking token AND the scanning station office location
-Route::get('/verify-scan/{token}/{location}', [App\Http\Controllers\VisitorController::class, 'verifyScan'])->name('visitor.verify');
-
-// Route that accepts a token and an optional station location
-Route::get('/verify-scan/{token}/{location?}', [App\Http\Controllers\VisitorController::class, 'verifyScan'])->name('visitor.verify');
+// Route that accepts a token and an optional station location for scanning
+Route::get('/verify-scan/{token}/{location?}', [VisitorController::class, 'verifyScan'])->name('visitor.verify');
 
 // Authentication Screen Views and Form Processors
-Route::get('/admin/login', [App\Http\Controllers\VisitorController::class, 'showLoginForm'])->name('admin.login');
-Route::post('/admin/login', [App\Http\Controllers\VisitorController::class, 'processLogin'])->name('admin.login.submit');
-Route::post('/admin/logout', [App\Http\Controllers\VisitorController::class, 'processLogout'])->name('admin.logout');
+// ⭐ FIXED: Added ->name('login') here so the security guard knows where to send visitors!
+Route::get('/admin/login', [VisitorController::class, 'showLoginForm'])->name('login');
+Route::post('/admin/login', [VisitorController::class, 'processLogin'])->name('admin.login.submit');
+Route::post('/admin/logout', [VisitorController::class, 'processLogout'])->name('admin.logout');
 
 
-// Put this line near your other admin routes
-Route::delete('/admin/visitor/{id}', [VisitorController::class, 'destroyVisitor'])->name('admin.delete-visitor');
+// 🔒 SECURE ROUTES: Only logged-in administrators can access these pages
+Route::middleware(['auth'])->group(function () {
+    
+    // The Administration Dashboard Overview URL using your correct controller method
+    Route::get('/admin/dashboard', [VisitorController::class, 'showAdminDashboard'])->name('admin.dashboard');
+    
+    // The URL path for the camera scanner page
+    Route::get('/gate/scanner', function () {
+        return view('gate-scanner');
+    })->name('gate.scanner');
+
+    // Route to delete a visitor record
+    Route::delete('/admin/visitor/{id}', [VisitorController::class, 'destroyVisitor'])->name('admin.delete-visitor');
+    
+});
+
+Route::middleware(['auth'])->group(function () {
+    
+    // The main dashboard portal page link
+    Route::get('/admin/dashboard', [VisitorController::class, 'showAdminDashboard'])->name('admin.dashboard');
+    
+    // The single-row database removal action button trigger
+    Route::delete('/admin/visitor/{id}', [VisitorController::class, 'destroyVisitor'])->name('admin.delete-visitor');
+    
+});

@@ -5,104 +5,287 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>University Security Admin Dashboard</title>
     <script src="{{ asset('chart.js') }}"></script>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: #f1f5f9; margin: 0; padding: 30px; color: #1e293b; }
-        .container { max-width: 1100px; margin: 0 auto; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
-        h1 { margin: 0; font-size: 26px; font-weight: 800; letter-spacing: -0.5px; }
-        .btn-group { display: flex; gap: 10px; }
-        .stats-grid { display: flex; gap: 20px; margin-bottom: 30px; }
-        .stat-card { background: white; padding: 20px; border-radius: 12px; flex: 1; box-shadow: 0 4px 6px rgba(0,0,0,0.02); border-left: 5px solid #64748b; }
-        .stat-card.active { border-left-color: #10b981; }
-        .stat-card.pending { border-left-color: #f59e0b; }
-        .stat-label { font-size: 11px; text-transform: uppercase; font-weight: 700; color: #94a3b8; letter-spacing: 0.5px; }
-        .stat-val { font-size: 28px; font-weight: 800; margin-top: 5px; color: #0f172a; }
-        .table-card { background: white; border-radius: 16px; box-shadow: 0 10px 25px rgba(0,0,0,0.03); overflow: hidden; margin-bottom: 20px; }
-        table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-        th { background: #f8fafc; padding: 15px; font-weight: 700; color: #64748b; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; font-size: 11px; }
-        td { padding: 15px; border-bottom: 1px solid #f1f5f9; color: #334155; }
-        .badge { display: inline-block; padding: 4px 8px; border-radius: 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; }
-        .badge.pending { background: #fef3c7; color: #d97706; }
-        .badge.checked_in { background: #d1fae5; color: #065f46; }
-        .badge.checked_out { background: #f1f5f9; color: #475569; }
-        
-        /* Interactive Buttons */
-        .primary-btn { background: #0f172a; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; }
-        .print-btn { background: #10b981; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; }
-        .logout-btn { background: #ef4444; color: white; border: none; padding: 10px 16px; border-radius: 8px; font-weight: 700; font-size: 13px; cursor: pointer; }
-        
-        /* Pagination Display Components */
-        .pagination-bar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 15px 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); margin-top: 15px; }
-        .pagination-info { font-size: 13px; color: #64748b; font-weight: 500; }
-        .pagination-btn { background: #f1f5f9; color: #334155; border: 1px solid #cbd5e1; padding: 8px 14px; border-radius: 8px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-        .pagination-btn:hover:not(:disabled) { background: #e2e8f0; color: #0f172a; }
-        .pagination-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    <script src="https://unpkg.com"></script>
 
-        @media print {
-    body { background: white; padding: 0; color: black; }
     
-    /* Hide menus, filters, buttons, and the top date selection box */
-    .primary-btn, .print-btn, .logout-btn, #searchContainer, .pagination-bar, form, #dateFilterGroup { 
-        display: none !important; 
+    <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: #f8fafc; margin: 0; padding: 30px; color: #0f172a; }
+    .container { max-width: 1100px; margin: 0 auto; }
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    h1 { margin: 0; font-size: 24px; font-weight: 700; letter-spacing: -0.5px; color: #0f172a; }
+    .btn-group { display: flex; gap: 8px; align-items: center; }
+    .stats-grid { display: flex; gap: 20px; margin-bottom: 30px; }
+    
+    /* Clean, Professional Summary Cards */
+    .stat-card { background: white; padding: 20px; border-radius: 8px; flex: 1; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+    .stat-label { font-size: 11px; text-transform: uppercase; font-weight: 600; color: #64748b; letter-spacing: 0.5px; }
+    .stat-val { font-size: 24px; font-weight: 700; margin-top: 5px; color: #0f172a; }
+    
+    /* Table Styling */
+    .table-card { background: white; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); overflow: hidden; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 13px; }
+    th { background: #f1f5f9; padding: 12px 16px; font-weight: 600; color: #475569; border-bottom: 1px solid #e2e8f0; text-transform: uppercase; font-size: 11px; letter-spacing: 0.5px; }
+    td { padding: 14px 16px; border-bottom: 1px solid #f1f5f9; color: #334155; }
+    
+    /* Professional Muted Badges (No bright neon colors) */
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; text-transform: uppercase; border: 1px solid transparent; }
+    .badge.pending { background: #f8fafc; color: #475569; border-color: #cbd5e1; }
+    .badge.checked_in { background: #f1f5f9; color: #0f172a; border-color: #94a3b8; }
+    .badge.checked_out { background: #ffffff; color: #64748b; border-color: #e2e8f0; }
+
+    /* Interactive Buttons - High-End Minimalist Black & White Theme */
+    .primary-btn { background: #0f172a; color: #ffffff; border: 1px solid #0f172a; padding: 0 16px; height: 38px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; box-sizing: border-box; transition: background 0.15s ease; white-space: nowrap !important; line-height: 38px !important; }
+    .primary-btn:hover { background: #1e293b; border-color: #1e293b; }
+    
+    .print-btn { background: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 0 16px; height: 38px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box; transition: background 0.15s ease; white-space: nowrap !important; line-height: 38px !important; }
+    .print-btn:hover { background: #f8fafc; border-color: #94a3b8; }
+    
+    .logout-btn { background: #ffffff; color: #334155; border: 1px solid #cbd5e1; padding: 0 16px; height: 38px; border-radius: 6px; font-weight: 600; font-size: 13px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 6px; box-sizing: border-box; transition: all 0.15s ease; white-space: nowrap !important; line-height: 38px !important; }
+    .logout-btn:hover { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+
+    /* Modernized Date Picker Layout Box */
+    #dateFilterGroup { display: inline-flex; align-items: center; height: 38px; gap: 8px; background: white; padding: 0 12px; border-radius: 6px; border: 1px solid #cbd5e1; box-sizing: border-box; }
+    #dateFilterGroup label { font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; display: inline-flex; align-items: center; }
+    
+    /* Strip Default Browser Windows Styles from Inputs & Lock Center Baseline */
+    #dateFilterGroup input[type="date"] { 
+        border: none; 
+        outline: none; 
+        font-size: 13px; 
+        color: #334155; 
+        font-family: inherit; 
+        background: transparent; 
+        padding: 0;
+        margin: 0;
+        display: inline-flex;
+        align-items: center;
+        height: 100%; 
     }
     
-    .table-card { box-shadow: none; border: 1px solid #cbd5e1; }
-    
-    /* ⭐ CLEAN UP: We removed the forcing rules from here! ⭐ */
-    
-    /* This rule will now successfully hide rows that do not match your chosen dates */
-    tr[data-date-hidden="true"] { 
-        display: none !important; 
+    #dateFilterGroup button { background: none; border: none; color: #94a3b8; cursor: pointer; padding: 0 4px; display: inline-flex; align-items: center; justify-content: center; transition: color 0.15s ease; }
+    #dateFilterGroup button:hover { color: #ef4444; }
+
+    /* Force absolute vertical centering for Chrome/Edge date pickers */
+    #dateFilterGroup input[type="date"]::-webkit-calendar-picker-indicator,
+    #dateFilterGroup input[type="date"]::-webkit-datetime-edit,
+    #dateFilterGroup input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+    #dateFilterGroup input[type="date"]::-webkit-datetime-edit-text,
+    #dateFilterGroup input[type="date"]::-webkit-datetime-edit-month-field,
+    #dateFilterGroup input[type="date"]::-webkit-datetime-edit-day-field,
+    #dateFilterGroup input[type="date"]::-webkit-datetime-edit-year-field {
+        display: inline-flex !important;
+        align-items: center !important;
+        height: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-sizing: border-box !important;
     }
+
+    #dateFilterGroup input[type="date"]::-webkit-calendar-picker-indicator {
+        cursor: pointer;
+        vertical-align: middle !important;
+    }
+
+    /* Form display handler */
+    .logout-form-wrapper { margin: 0; display: inline-flex; align-items: center; }
+
+    /* Table Action Delete Button */
+    .action-delete-btn { background: #ffffff; color: #475569; border: 1px solid #e2e8f0; padding: 6px 10px; border-radius: 4px; font-weight: 500; font-size: 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; transition: all 0.15s ease; }
+    .action-delete-btn:hover { background: #fee2e2; color: #991b1b; border-color: #fca5a5; }
+    
+    /* Pagination Components */
+    .pagination-bar { display: flex; justify-content: space-between; align-items: center; background: white; padding: 12px 24px; border-radius: 8px; border: 1px solid #e2e8f0; margin-top: 15px; }
+    .pagination-info { font-size: 13px; color: #64748b; font-weight: 500; }
+    .pagination-btn { background: #ffffff; color: #334155; border: 1px solid #e2e8f0; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 4px; }
+    .pagination-btn:hover:not(:disabled) { background: #f8fafc; border-color: #cbd5e1; color: #0f172a; }
+    .pagination-btn:disabled { opacity: 0.5; cursor: not-allowed; background: #f1f5f9; color: #94a3b8; }
+
+    @media print {
+        body { background: white; padding: 0; color: black; }
+        .primary-btn, .print-btn, .logout-btn, #searchContainer, .pagination-bar, form, #dateFilterGroup { display: none !important; }
+        .table-card { box-shadow: none; border: 1px solid #cbd5e1; }
+        tr[data-date-hidden="true"] { display: none !important; }
+    }
+
+    /* Master Action Center Positioning for the Button Bar */
+.btn-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
+/* Centered Modal Popup Window Backdrop */
+.date-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(15, 23, 42, 0.3); /* Premium soft dark blur background */
+    backdrop-filter: blur(4px);
+    display: none; /* Hidden by default system rules */
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
 
-        
-    </style>
+/* Premium Floating Center Modal Box Control */
+.date-modal-card {
+    background: #ffffff;
+    padding: 24px;
+    border-radius: 12px;
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+    border: 1px solid #e2e8f0;
+    max-width: 420px;
+    width: 100%;
+    animation: modalFadeIn 0.2s ease-out;
+}
+
+.date-modal-title {
+    margin: 0 0 16px 0;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.date-modal-inputs {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.date-input-field-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.date-input-field-group label {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: #64748b;
+    letter-spacing: 0.5px;
+}
+
+.date-input-field-group input[type="date"] {
+    height: 38px;
+    border: 1px solid #cbd5e1;
+    border-radius: 6px;
+    padding: 0 12px;
+    font-size: 14px;
+    color: #334155;
+    outline: none;
+    font-family: inherit;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.date-input-field-group input[type="date"]:focus {
+    border-color: #0f172a;
+}
+
+.date-modal-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; transform: scale(0.95); }
+    to { opacity: 1; transform: scale(1); }
+}
+
+</style>
+
 </head>
 <body>
 
     <div class="container">
-        <div class="header">
-            <div>
-                <h1>Campus Security Admin Log</h1>
-                <div style="font-size: 13px; color: #64748b; margin-top: 4px;">State University Visitor Management Control</div>
-            </div>
-            <div class="btn-group" style="display: flex; align-items: center; gap: 15px;">
-    <!-- ⭐ NEW: Date Range Selection Inputs Group ⭐ -->
-    <div id="dateFilterGroup" style="display: flex; align-items: center; gap: 8px; background: white; padding: 6px 12px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); border: 1px solid #cbd5e1;">
-        <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase;">From:</label>
-        <input type="date" id="startDate" style="border: none; outline: none; font-size: 13px; color: #334155; font-family: inherit;">
-        
-        <label style="font-size: 11px; font-weight: 700; color: #64748b; text-transform: uppercase; margin-left: 5px;">To:</label>
-        <input type="date" id="endDate" style="border: none; outline: none; font-size: 13px; color: #334155; font-family: inherit;">
-        
-        <button onclick="clearDateFilter()" style="background: none; border: none; color: #ef4444; font-weight: 700; cursor: pointer; font-size: 12px; padding: 0 5px;" title="Clear Dates">✕</button>
+    <div class="header">
+        <div>
+    <!-- Reads the SYSTEM_SUBTITLE from .env, defaults back to "Campus Security Admin Log" if empty -->
+    <h1>{{ env('SYSTEM_SUBTITLE', 'Campus Security Admin Log') }}</h1>
+    
+    <div style="font-size: 13px; color: #64748b; margin-top: 4px;">
+        {{ env('APP_NAME', 'Laravel') }} {{ env('SYSTEM_DEPARTMENT', 'Visitor Management Control') }}
     </div>
-                <button onclick="window.print()" class="print-btn">🖨️ Print Logs Report</button>
-                <a href="{{ route('visitor.register') }}" class="primary-btn">+ Registration Portal</a>
-                <form action="{{ route('admin.logout') }}" method="POST" style="margin: 0; display: inline;">
-                    @csrf
-                    <button type="submit" class="logout-btn">Log Out</button>
-                </form>
-            </div>
-        </div>
+</div>
+        
+        <div class="btn-group">
+            <!-- Print Logs button now opens the prompt center map logic -->
+            <button onclick="openPrintModal()" class="print-btn">
+                <svg xmlns="http://w3.org" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                    <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                    <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                    <rect x="6" y="14" width="12" height="8"></rect>
+                </svg>Print Logs Report
+            </button>
 
-        <!-- Analytics counters box -->
-        <div class="stats-grid">
-            <div class="stat-card pending">
-                <div class="stat-label">Total Passes Issued</div>
-                <div class="stat-val">{{ $totalRegistered }}</div>
+            <a href="{{ route('visitor.register') }}" class="primary-btn">
+                <svg xmlns="http://w3.org" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>Registration Portal
+            </a>
+
+            <form action="{{ route('admin.logout') }}" method="POST" class="logout-form-wrapper">
+                @csrf
+                <button type="submit" class="logout-btn">
+                    <svg xmlns="http://w3.org" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                        <polyline points="16 17 21 12 16 7"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>Log Out
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ⭐ HIDDEN POPUP MODAL CENTER BOX SYSTEM ⭐ -->
+    <div id="printModalOverlay" class="date-modal-overlay">
+        <div class="date-modal-card">
+            <h3 class="date-modal-title">Select Log Date Range</h3>
+            
+            <div class="date-modal-inputs">
+                <div class="date-input-field-group">
+                    <label>From Date</label>
+                    <input type="date" id="startDate">
+                </div>
+                <div class="date-input-field-group">
+                    <label>To Date</label>
+                    <input type="date" id="endDate">
+                </div>
             </div>
-            <div class="stat-card active">
-                <div class="stat-label">Currently On Campus</div>
-                <div class="stat-val" style="color: #10b981;">{{ $currentlyInside }}</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-label">Total Checked Out</div>
-                <div class="stat-val">{{ $totalCheckedOut }}</div>
+            
+            <div class="date-modal-footer">
+                <!-- Cancel Close Action Button -->
+                <button onclick="closePrintModal()" class="print-btn" style="height: 34px; padding: 0 12px;">Cancel</button>
+                <!-- Proceed Action Print Button -->
+                <button onclick="triggerSystemPrint()" class="primary-btn" style="height: 34px; padding: 0 12px;">Proceed to Print</button>
             </div>
         </div>
+    </div>
+
+
+
+    <!-- Analytics counters box -->
+    <div class="stats-grid">
+        <div class="stat-card pending">
+            <div class="stat-label">Total Passes Issued</div>
+            <div class="stat-val">{{ $totalRegistered }}</div>
+        </div>
+        <div class="stat-card active">
+            <div class="stat-label">Currently On Campus</div>
+            <div class="stat-val" style="color: #0f172a;">{{ $currentlyInside }}</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-label">Total Checked Out</div>
+            <div class="stat-val">{{ $totalCheckedOut }}</div>
+        </div>
+    </div>
+
 
 
        <!-- Charts Visualization Row Grid -->
@@ -127,12 +310,20 @@
 
 
 
-        <!-- Realtime filtering field container -->
-        <div id="searchContainer" style="margin-bottom: 20px; display: flex; gap: 10px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); align-items: center;">
-            <span style="font-size: 18px; color: #94a3b8;">🔍</span>
-            <input type="text" id="dashboardSearch" placeholder="Search visitors by name, purpose, or location..." 
-                style="width: 100%; border: none; font-size: 14px; color: #0f172a; outline: none; background: transparent;">
-        </div>
+ <!-- Realtime filtering field container -->
+<div id="searchContainer" style="margin-bottom: 20px; display: flex; gap: 10px; background: white; padding: 12px 16px; border-radius: 8px; border: 1px solid #e2e8f0; box-shadow: 0 1px 3px rgba(0,0,0,0.05); align-items: center;">
+    
+    <!-- Flat Vector Line Search Icon (Guaranteed to render) -->
+    <svg xmlns="http://w3.org" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#64748b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; display: block;">
+        <circle cx="11" cy="11" r="8"></circle>
+        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+    </svg>
+    
+    <input type="text" id="dashboardSearch" placeholder="Search visitors by name, purpose, or location..." 
+        style="width: 100%; border: none; font-size: 14px; color: #0f172a; outline: none; background: transparent;">
+</div>
+
+
 
         <!-- Logs database records panel container -->
         <div class="table-card">
@@ -180,9 +371,16 @@
                     <form action="{{ route('admin.delete-visitor', $v->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this visitor record?');" style="margin:0; display: inline-block;">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" style="background: #ef4444; color: white; border: none; padding: 6px 12px; border-radius: 6px; font-weight: 700; font-size: 11px; cursor: pointer;">
-                            🗑️ Delete
-                        </button>
+                        <button class="action-delete-btn">
+    <!-- Flat Vector Line Trash Icon (Guaranteed to render) -->
+    <svg xmlns="http://w3.org" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+        <path d="M3 6h18"></path>
+        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+    </svg>
+    Delete
+</button>
+
                     </form>
                 </td>
             </tr>
@@ -224,7 +422,19 @@
                 }
             });
         });
+
+        document.addEventListener("DOMContentLoaded", function() {
+        if (typeof lucide !== 'undefined') {
+            lucide.createIcons();
+        } else {
+            console.error("Lucide script failed to load from the network link.");
+        }
+    });
+
     </script>
+
+  
+
 </body>
 </html>
 
@@ -406,5 +616,27 @@
             }
         });
     });
+
+    // Opens the centering date picker overlay prompt layout box
+function openPrintModal() {
+    document.getElementById('printModalOverlay').style.display = 'flex';
+}
+
+// Closes the modal popup box field window safely
+function closePrintModal() {
+    document.getElementById('printModalOverlay').style.display = 'none';
+}
+
+// Triggers the system print sheet output logic directly
+function triggerSystemPrint() {
+    // Hidden backdrop closes automatically right before print processes spawn
+    closePrintModal();
+    
+    // Slight micro delay timeout engine ensures modal closes before browser prints
+    setTimeout(function() {
+        window.print();
+    }, 150);
+}
+
 </script>
 

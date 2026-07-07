@@ -12,7 +12,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // ⭐ REGISTER THE ROLE MIDDLEWARE ALIAS
+        $middleware->alias([
+            'role' => \App\Http\Middleware\CheckUserRole::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

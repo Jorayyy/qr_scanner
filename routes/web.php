@@ -2,6 +2,11 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\VisitorController;
+use App\Http\Controllers\UserController; // 👈 CRITICAL: Import your new user controller
+
+// -----------------------------------------------------------------
+// PUBLIC GUEST ROUTES (No Authentication Needed)
+// -----------------------------------------------------------------
 
 // The default welcome page
 Route::get('/', function () {
@@ -18,34 +23,31 @@ Route::post('/register', [VisitorController::class, 'storeVisitor'])->name('visi
 Route::get('/verify-scan/{token}/{location?}', [VisitorController::class, 'verifyScan'])->name('visitor.verify');
 
 // Authentication Screen Views and Form Processors
-// ⭐ FIXED: Added ->name('login') here so the security guard knows where to send visitors!
 Route::get('/admin/login', [VisitorController::class, 'showLoginForm'])->name('login');
 Route::post('/admin/login', [VisitorController::class, 'processLogin'])->name('admin.login.submit');
 Route::post('/admin/logout', [VisitorController::class, 'processLogout'])->name('admin.logout');
 
 
-// 🔒 SECURE ROUTES: Only logged-in administrators can access these pages
+// -----------------------------------------------------------------
+// 🔒 PROTECTED TERMINAL & ADMIN ROUTES (Only Logged-in Users)
+// -----------------------------------------------------------------
 Route::middleware(['auth'])->group(function () {
     
-    // The Administration Dashboard Overview URL using your correct controller method
+    // The Administration Dashboard Overview Portal URL
     Route::get('/admin/dashboard', [VisitorController::class, 'showAdminDashboard'])->name('admin.dashboard');
     
-    // The URL path for the camera scanner page
+    // The URL path for the camera scanner terminal page
     Route::get('/gate/scanner', function () {
         return view('gate-scanner');
     })->name('gate.scanner');
 
-    // Route to delete a visitor record
+    // Route to delete a visitor record from the dashboard table rows
     Route::delete('/admin/visitor/{id}', [VisitorController::class, 'destroyVisitor'])->name('admin.delete-visitor');
-    
-});
 
-Route::middleware(['auth'])->group(function () {
-    
-    // The main dashboard portal page link
-    Route::get('/admin/dashboard', [VisitorController::class, 'showAdminDashboard'])->name('admin.dashboard');
-    
-    // The single-row database removal action button trigger
-    Route::delete('/admin/visitor/{id}', [VisitorController::class, 'destroyVisitor'])->name('admin.delete-visitor');
+    // 👤 SYSTEM USER MANAGEMENT SUB-ROUTES (Add, Edit, View Guards/Admins)
+    Route::get('/admin/users', [UserController::class, 'index'])->name('users.index');
+    Route::post('/admin/users', [UserController::class, 'store'])->name('users.store');
+    Route::put('/admin/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     
 });

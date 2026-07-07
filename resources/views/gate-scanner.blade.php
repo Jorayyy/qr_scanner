@@ -8,18 +8,20 @@
 
   
     <style>
-        body { 
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
-            background-color: #f8fafc; 
-            display: flex; 
-            align-items: center; 
-            justify-content: center; 
-            min-height: 100vh; 
-            margin: 0; 
-            padding: 24px; 
-            box-sizing: border-box;
-            color: #0f172a;
-        }
+            body { 
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; 
+        background-color: #f8fafc; 
+        display: flex; 
+        flex-direction: column; /* 👈 Stacks the navbar on top of the card */
+        align-items: center; 
+        justify-content: flex-start; /* 👈 Flows elements smoothly from the top down */
+        min-height: 100vh; 
+        margin: 0; 
+        padding: 24px; 
+        box-sizing: border-box;
+        color: #0f172a;
+    }
+
         .card { 
             background: #ffffff; 
             padding: 40px; 
@@ -196,6 +198,29 @@
 
 </head>
 <body>
+   <!-- REPLACE YOUR EXISTING <nav> BLOCK IN ALL THREE VIEWS WITH THIS SECURE VERSION -->
+<nav style="width: 100%; max-width: 480px; margin: 0 auto 24px auto; background: #ffffff; padding: 12px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 10px 15px -3px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; display: flex; gap: 8px; box-sizing: border-box;">
+    
+    <!-- Tab 1: Terminal Link (Guards and Admins can ALWAYS see this) -->
+    <a href="{{ route('gate.scanner') }}" style="flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('gate.scanner') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
+        📟 Terminal
+    </a>
+
+    <!-- ⭐ SECURE SECURITY LOCK: Only render Dashboard and Users options if the user is an Admin -->
+    @if(auth()->check() && auth()->user()->role === 'admin')
+        <!-- Tab 2: Dashboard Link -->
+        <a href="{{ route('admin.dashboard') }}" style="flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('admin.dashboard') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
+            📊 Dashboard
+        </a>
+
+        <!-- Tab 3: Users Control Link -->
+        <a href="{{ route('users.index') }}" style="flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('users.index') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
+            👤 Users
+        </a>
+    @endif
+</nav>
+
+
 
   <div class="card">
     <!-- University Branding Header -->

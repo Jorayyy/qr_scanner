@@ -43,16 +43,20 @@
 </head>
 <body>
 
-    <div class="success-container">
+        <div class="success-container">
         <!-- Status Verification Check Shield badge -->
         <div class="status-badge-circle">
             <svg xmlns="http://w3.org" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </div>
         
-        <<!-- Open qr-success.blade.php -->
-        <h1>Registration Complete!</h1>
-        <div class="subtitle">Your entry credentials for {{ env('APP_NAME', 'the university') }} have been issued successfully.</div>
-
+        <!-- 🏆 DYNAMIC CONDITIONAL HEADER BLOCK -->
+        @if(isset($page_status) && $page_status === 'returning')
+            <h1>Welcome Back!</h1>
+            <div class="subtitle">Your entry credentials for {{ env('APP_NAME', 'the university') }} have been reissued successfully.</div>
+        @else
+            <h1>Registration Complete!</h1>
+            <div class="subtitle">Your entry credentials for {{ env('APP_NAME', 'the university') }} have been issued successfully.</div>
+        @endif
 
         <!-- Professional Warning Box -->
         <div class="warning-banner">
@@ -65,6 +69,7 @@
             <!-- Renders your high-res dynamic server package vector graphic seamlessly -->
             {!! $qrCode !!}
         </div>
+
 
         <!-- Technical Parameters Summary Grid -->
         <div class="meta-data-list">

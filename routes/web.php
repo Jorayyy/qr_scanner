@@ -27,6 +27,14 @@ Route::get('/admin/login', [VisitorController::class, 'showLoginForm'])->name('l
 Route::post('/admin/login', [VisitorController::class, 'processLogin'])->name('admin.login.submit');
 Route::post('/admin/logout', [VisitorController::class, 'processLogout'])->name('admin.logout');
 
+// -----------------------------------------------------------------
+// PUBLIC GUEST ROUTES (No Authentication Needed)
+// -----------------------------------------------------------------
+
+// Add these two lines under your existing visitor.store route:
+Route::get('/visitor/reissue', [VisitorController::class, 'showReissueForm'])->name('visitor.reissue');
+Route::post('/visitor/reissue', [VisitorController::class, 'processReissue'])->name('visitor.reissue.submit');
+
 
 // -----------------------------------------------------------------
 // 🔒 PROTECTED TERMINAL & ADMIN ROUTES (Only Logged-in Users)

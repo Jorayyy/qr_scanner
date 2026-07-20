@@ -13,7 +13,7 @@ class Visitor extends Model
         'id_number',
         'purpose_of_visit',
         'person_to_visit',
-        'qr_code_token',
+        'qr_code_token', // 👈 This matches our query locator field
         'status',
         'current_location',
         'checked_in_at',
@@ -25,9 +25,11 @@ class Visitor extends Model
         'checked_out_at' => 'datetime',
     ];
 
-        public function movements()
+    /**
+     * Get the logged movements for this visitor terminal session.
+     */
+    public function movements()
     {
         return $this->hasMany(Movement::class);
     }
-
 }

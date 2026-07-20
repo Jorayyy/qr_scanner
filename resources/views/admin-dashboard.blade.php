@@ -380,15 +380,33 @@
                 </td>
                 <td style="text-align: center; vertical-align: middle;">{{ $v->current_location }}</td>
                 
-                <!-- History Timeline Column -->
-                <td style="text-align: center; vertical-align: middle; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; border-bottom: none;">
-                    @foreach($v->movements as $movement)
-                        <div>{{ $movement->location_name }} <small style="display: block; color: #64748b;">({{ $movement->created_at->format('h:i A') }})</small></div>
-                    @endforeach
+                               <!-- History Timeline Column -->
+                <td style="text-align: center; vertical-align: middle; min-width: 170px;">
+                    <!-- Native HTML Accordion Component Box -->
+                    <details style="cursor: pointer; font-size: 12px; outline: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 10px; width: 100%; box-sizing: border-box; text-align: left;">
+                        <summary style="font-weight: 600; color: #475569; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
+                            <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                <svg xmlns="http://w3.org" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                {{ $v->movements->count() }} {{ Str::plural('Movement', $v->movements->count()) }}
+                            </span>
+                            <span style="font-size: 9px; color: #94a3b8;">▼</span>
+                        </summary>
+                        
+                        <!-- Smooth scrollable overflow dropdown tray -->
+                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e2e8f0; max-height: 120px; overflow-y: auto;">
+                            @foreach($v->movements as $movement)
+                                <div style="margin-bottom: 6px; padding-left: 6px; border-left: 2px solid #0f172a; text-align: left;">
+                                    <div style="font-weight: 600; color: #0f172a; font-size: 11px;">{{ $movement->location_name }}</div>
+                                    <div style="font-size: 10px; color: #64748b;">{{ $movement->created_at->format('h:i A') }}</div>
+                                </div>
+                            @endforeach
+                        </div>
+                    </details>
                 </td>
 
                 <td style="text-align: center; vertical-align: middle;">{{ $v->checked_in_at ? $v->checked_in_at->format('M d, h:i A') : '—' }}</td>
                 <td style="text-align: center; vertical-align: middle;">{{ $v->checked_out_at ? $v->checked_out_at->format('M d, h:i A') : '—' }}</td>
+
                 
                 <!-- Action Delete Button Centered -->
                 <td style="text-align: center; vertical-align: middle;">

@@ -17,27 +17,30 @@ class VisitorController extends Controller
         return view('register');
     }
 
-    // 2. Handle visitor form submission and generate pass data matrix
+        // 2. Handle visitor form submission
     public function storeVisitor(Request $request)
     {
         $request->validate([
-            'full_name' => 'required|string|max:255',
-            'id_number' => 'required|string|max:50',
-            'contact_number' => 'required|string|max:20',
+            'full_name'        => 'required|string|max:255',
+            'id_number'        => 'nullable|string|max:50', // 🏆 CHANGED: Made nullable
+            'contact_number'   => 'required|string|max:20',
             'purpose_of_visit' => 'required|string|max:255',
-            'person_to_visit' => 'required|string|max:255',
+            'person_to_visit'  => 'required|string|max:255',
         ]);
 
         $uniqueToken = Str::uuid()->toString();
 
+        // 🏆 FALLBACK LOGIC: If no ID number is supplied, generate a custom guest ID tag string
+        $idNumber = $request->id_number ?: 'GUEST-' . date('Ymd') . '-' . strtoupper(Str::random(4));
+
         $visitor = Visitor::create([
-            'full_name' => $request->full_name,
-            'id_number' => $request->id_number,
-            'contact_number' => $request->contact_number,
+            'full_name'        => $request->full_name,
+            'id_number'        => $idNumber, // Uses real ID or generated guest tracking tag
+            'contact_number'   => $request->contact_number,
             'purpose_of_visit' => $request->purpose_of_visit,
-            'person_to_visit' => $request->person_to_visit,
-            'qr_code_token' => $uniqueToken,
-            'status' => 'pending'
+            'person_to_visit'  => $request->person_to_visit,
+            'qr_code_token'    => $uniqueToken,
+            'status'           => 'pending'
         ]);
 
         $qrCode = QrCode::size(220)
@@ -48,10 +51,15 @@ class VisitorController extends Controller
         return view('qr-success', compact('visitor', 'qrCode'));
     }
 
-    // 3. Handle Campus Scans and Multi-Office Department Tracking Logic
+
+        // 3. Handle Campus Scans and Multi-Office Department Tracking Logic
     public function verifyScan($token, $location = 'Main Gate')
     {
-        $visitor = Visitor::where('qr_code_token', $token)->first();
+        // 🏆 BULLETPROOF FIX: Strip out accidental spaces (%20) and browser duplicate indices like " (1)"
+        $cleanToken = trim(preg_replace('/\s*\(\d+\)\s*$/', '', $token));
+
+        // Query using the sanitized token text
+        $visitor = Visitor::where('qr_code_token', $cleanToken)->first();
 
         if (!$visitor) {
             return view('scan-result', ['success' => false, 'title' => 'Invalid Pass', 'message' => 'Token not found.', 'visitor' => null]);
@@ -94,6 +102,7 @@ class VisitorController extends Controller
 
         return view('scan-result', ['success' => true, 'title' => 'Access Granted', 'message' => 'Welcome to campus!', 'visitor' => $visitor]);
     }
+
 
     // 4. Show the Administration Log Dashboard Panel with Search and Analytics
     public function showAdminDashboard()
@@ -167,4 +176,54 @@ class VisitorController extends Controller
 
         return back()->with('success', 'Visitor record deleted successfully!');
     }
+
+    // -----------------------------------------------------------------
+    // 🆕 RETURNING VISITOR LOOKUP FUNCTIONS
+    // -----------------------------------------------------------------
+
+    // Render the dedicated lookup input card view
+    public function showReissueForm()
+    {
+        return view('visitor-reissue');
+    }
+
+// Search for existing ID, update their visit details, and reconstruct active QR pass token
+public function processReissue(Request $request)
+{
+    // 1. Validate the incoming request fields
+    $request->validate([
+        'id_number'         => 'required|string',
+        'purpose_of_visit'  => 'required|string|max:255',
+        'person_to_visit'   => 'required|string|max:255',
+    ]);
+
+    // 2. Query the SQLite database for a match
+    $visitor = Visitor::where('id_number', $request->id_number)->first();
+
+    if (!$visitor) {
+        return back()->withErrors(['id_number' => 'No visitor record found with that ID Number.']);
+    }
+
+    // 3. 🏆 UPDATE the existing record with their fresh purpose and target details
+    $visitor->update([
+        'purpose_of_visit' => $request->purpose_of_visit,
+        'person_to_visit'  => $request->person_to_visit,
+        'status'           => 'pending', // Reset status to pending for their new gate entry scan
+    ]);
+
+        // Reconstruct the matching token graphic size properties
+    $qrCode = QrCode::size(220)
+        ->color(15, 23, 42)
+        ->margin(1)
+        ->generate($visitor->qr_code_token);
+
+    // 🏆 BULLETPROOF FIX: Force pass a static string type down to your view array
+    return view('qr-success', [
+        'visitor'     => $visitor,
+        'qrCode'      => $qrCode,
+        'page_status' => 'returning'
+    ]);
+}
+
+
 }

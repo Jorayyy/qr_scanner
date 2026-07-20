@@ -126,6 +126,32 @@
             background: #94a3b8;
             cursor: not-allowed;
         }
+        
+        /* 🆕 STYLES FOR THE NEW LOGIN LINK BUTTON */
+        .login-btn {
+            display: inline-flex; 
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            width: 100%; 
+            background: transparent; 
+            color: #475569; 
+            height: 44px;
+            border-radius: 8px; 
+            font-weight: 600; 
+            font-size: 14px; 
+            border: 1px solid #cbd5e1; 
+            cursor: pointer; 
+            margin-top: 10px;
+            text-decoration: none; /* Removes underline from anchor element */
+            transition: all 0.15s ease;
+            box-sizing: border-box;
+        }
+        .login-btn:hover {
+            background: #f1f5f9;
+            color: #0f172a;
+            border-color: #0f172a;
+        }
     </style>
 </head>
 <body>
@@ -159,9 +185,9 @@
                 </div>
                  
                 <div class="form-group">
-                    <label for="id_number">ID Number</label>
-                    <input type="text" name="id_number" id="id_number" placeholder="2026-12345" required autocomplete="off">
-                </div>
+    <label for="id_number">ID Number (Optional)</label>
+    <input type="text" name="id_number" id="id_number" placeholder="e.g., 2026-12345 (Leave blank if Guest)" autocomplete="off">
+</div>
             </div>
 
             <div class="form-group">
@@ -178,8 +204,45 @@
                 <svg xmlns="http://w3.org" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect><path d="M14 14h7v7h-7z"></path></svg>
                 Generate Visitor QR Pass
             </button>
+
+            <!-- 🆕 NEW LOGIN BUTTON LINK FOR EXISTING USERS -->
+            <a href="{{ route('visitor.reissue') }}" class="login-btn">
+                <svg xmlns="http://w3.org" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                Existing User? Login Here
+            </a>
         </form>
     </div>
+
+        <script>
+        // Enforce alignment consistency across the registration form
+        const registrationIdInput = document.getElementById('id_number');
+        const registerForm = registrationIdInput.closest('form');
+        const regSubmitBtn = registerForm.querySelector('.submit-btn');
+
+        const strictFormatRegex = /^\d{2,4}-\d{3,10}$/;
+
+        registrationIdInput.addEventListener('input', function(e) {
+            let val = e.target.value.replace(/[^0-8a-zA-Z-]/g, '');
+            if (val.length > 4 && !val.includes('-')) {
+                val = val.slice(0, 4) + '-' + val.slice(4);
+            }
+            e.target.value = val;
+
+            if (strictFormatRegex.test(val)) {
+                registrationIdInput.style.borderColor = '#cbd5e1';
+                regSubmitBtn.disabled = false;
+            } else {
+                if (val.length > 0) {
+                    registrationIdInput.style.borderColor = '#ef4444';
+                    regSubmitBtn.disabled = true;
+                } else {
+                    registrationIdInput.style.borderColor = '#cbd5e1';
+                    regSubmitBtn.disabled = false;
+                }
+            }
+        });
+    </script>
+
 
 </body>
 </html>

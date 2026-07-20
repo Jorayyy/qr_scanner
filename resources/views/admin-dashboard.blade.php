@@ -411,76 +411,125 @@
             <th style="text-align: center;">Status</th>
             <th style="text-align: center;">Current Location</th>
             <th style="text-align: center;">Tracking History Timeline</th>
-            <th style="text-align: center;">Checked In At</th>
-            <th style="text-align: center;">Checked Out At</th>
             <th style="text-align: center;">ACTIONS</th>
         </tr>
     </thead>
+
     <tbody id="visitorTableBody">
-        @forelse($allVisitors as $v)
-            <tr class="visitor-row" data-date="{{ $v->created_at->format('Y-m-d') }}">
-                <!-- Added text-align: center and vertical alignment centering -->
-                <td style="text-align: center; vertical-align: middle;"><strong>{{ $v->full_name }}</strong></td>
-                <td style="text-align: center; vertical-align: middle;">{{ $v->id_number ?? 'N/A' }}</td>
-                <td style="text-align: center; vertical-align: middle;">{{ $v->purpose_of_visit }}</td>
-                <td style="text-align: center; vertical-align: middle;">{{ $v->person_to_visit }}</td>
-                <td style="text-align: center; vertical-align: middle;">
-                    <span class="badge {{ $v->status }}">{{ $v->status }}</span>
-                </td>
-                <td style="text-align: center; vertical-align: middle;">{{ $v->current_location }}</td>
-                
-                               <!-- History Timeline Column -->
-                <td style="text-align: center; vertical-align: middle; min-width: 170px;">
-                    <!-- Native HTML Accordion Component Box -->
-                    <details style="cursor: pointer; font-size: 12px; outline: none; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 6px 10px; width: 100%; box-sizing: border-box; text-align: left;">
-                        <summary style="font-weight: 600; color: #475569; list-style: none; display: flex; align-items: center; justify-content: space-between; user-select: none;">
-                            <span style="display: inline-flex; align-items: center; gap: 6px;">
-                                <svg xmlns="http://w3.org" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                {{ $v->movements->count() }} {{ Str::plural('Movement', $v->movements->count()) }}
-                            </span>
-                            <span style="font-size: 9px; color: #94a3b8;">▼</span>
-                        </summary>
-                        
-                        <!-- Smooth scrollable overflow dropdown tray -->
-                        <div style="margin-top: 8px; padding-top: 8px; border-top: 1px dashed #e2e8f0; max-height: 120px; overflow-y: auto;">
-                            @foreach($v->movements as $movement)
-                                <div style="margin-bottom: 6px; padding-left: 6px; border-left: 2px solid #0f172a; text-align: left;">
-                                    <div style="font-weight: 600; color: #0f172a; font-size: 11px;">{{ $movement->location_name }}</div>
-                                    <div style="font-size: 10px; color: #64748b;">{{ $movement->created_at->format('h:i A') }}</div>
+    @forelse($allVisitors as $v)
+        <tr class="visitor-row" data-date="{{ $v->created_at->format('Y-m-d') }}">
+            <td style="text-align: center; vertical-align: middle;"><strong>{{ $v->full_name }}</strong></td>
+            <td style="text-align: center; vertical-align: middle;">{{ $v->id_number ?? 'N/A' }}</td>
+            <td style="text-align: center; vertical-align: middle;">{{ $v->purpose_of_visit }}</td>
+            <td style="text-align: center; vertical-align: middle;">{{ $v->person_to_visit }}</td>
+            <td style="text-align: center; vertical-align: middle;">
+                <span class="badge {{ $v->status }}">{{ $v->status }}</span>
+            </td>
+            <td style="text-align: center; vertical-align: middle;">{{ $v->current_location }}</td>
+            
+            <!-- ⚡ TRACKING HISTORY COLUMN BUTTON -->
+            <td style="text-align: center; vertical-align: middle; width: 140px;">
+                <button type="button" class="action-history-btn" onclick="openTimelineModal('{{ $v->id }}')" style="display: inline-flex; align-items: center; gap: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                    <svg xmlns="http://w3.org" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    History ({{ $v->movements->count() }})
+                </button>
+            </td>
+            
+            <!-- ACTION DELETE BUTTON -->
+            <td style="text-align: center; vertical-align: middle; width: 100px;">
+                <form action="{{ route('admin.delete-visitor', $v->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this visitor record?');" style="margin:0; display: inline-block;">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="action-delete-btn">
+                        <svg xmlns="http://w3.org" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                        </svg>
+                        Delete
+                    </button>
+                </form>
+            </td>
+        </tr>
+    @empty
+        <tr>
+            <td colspan="8" style="text-align: center; vertical-align: middle;">No visitor logs found.</td>
+        </tr>
+    @endforelse
+</tbody>
+
+<!-- 🏆 VISITOR TIMELINE LOG MODAL WRAPPERS -->
+@foreach($allVisitors as $v)
+    <div id="modal-{{ $v->id }}" style="display: none; position: fixed; z-index: 9999; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(15, 23, 42, 0.4); backdrop-filter: blur(2px); align-items: center; justify-content: center;">
+        <div style="background-color: #ffffff; padding: 24px; border-radius: 16px; border: 1px solid #e2e8f0; width: 90%; max-width: 420px; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); text-align: left; position: relative; animation: modalFadeIn 0.2s ease-out; box-sizing: border-box; font-family: system-ui, -apple-system, sans-serif;">
+            
+            <!-- Modal Header Header -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid #f1f5f9;">
+                <div>
+                    <h3 style="margin: 0; font-size: 16px; font-weight: 700; color: #0f172a;">{{ $v->full_name }}</h3>
+                    <p style="margin: 2px 0 0 0; font-size: 11px; color: #64748b; font-weight: 500;">Registration ID: {{ $v->id_number ?? 'N/A' }}</p>
+                </div>
+                <button type="button" onclick="closeTimelineModal('{{ $v->id }}')" style="background: none; border: none; font-size: 22px; color: #94a3b8; cursor: pointer; font-weight: 300; line-height: 1; padding: 0 4px;">&times;</button>
+            </div>
+
+            <!-- Scrollable Timeline Tray -->
+            <div style="max-height: 280px; overflow-y: auto; padding-right: 4px;">
+                @forelse($v->movements->sortBy('created_at')->groupBy(function($item) { return $item->created_at->format('Y-m-d'); }) as $date => $dayMovements)
+                    
+                    <!-- Calendar Date Header Badge -->
+                    <div style="font-weight: 700; color: #475569; font-size: 10px; background: #e2e8f0; padding: 3px 8px; border-radius: 4px; display: inline-block; margin-bottom: 10px; margin-top: 6px; text-transform: uppercase; letter-spacing: 0.5px;">
+                        {{ \Carbon\Carbon::parse($date)->format('M d, Y') }}
+                    </div>
+
+                    <!-- Ordered Movements Grid Loops -->
+                    @foreach($dayMovements as $movement)
+                        @php
+                            $locName = strtolower(trim($movement->location_name));
+                            $isEntry = (str_contains($locName, 'main gate') || str_contains($locName, 'entry') || str_contains($locName, 'check in'));
+                            $isExit = (str_contains($locName, 'left campus') || str_contains($locName, 'exit') || str_contains($locName, 'check out'));
+                        @endphp
+
+                        @if($isEntry)
+                            <div style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid #16a34a;">
+                                <div style="font-weight: 700; color: #16a34a; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg xmlns="http://w3.org" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                                    Checked In ({{ $movement->location_name }})
                                 </div>
-                            @endforeach
-                        </div>
-                    </details>
-                </td>
+                                <div style="font-size: 10px; color: #64748b; margin-top: 1px;">{{ $movement->created_at->format('h:i A') }}</div>
+                            </div>
+                        @elseif($isExit)
+                            <div style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid #dc2626;">
+                                <div style="font-weight: 700; color: #dc2626; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg xmlns="http://w3.org" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                                    Checked Out ({{ $movement->location_name }})
+                                </div>
+                                <div style="font-size: 10px; color: #64748b; margin-top: 1px;">{{ $movement->created_at->format('h:i A') }}</div>
+                            </div>
+                        @else
+                            <div style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid #3b82f6;">
+                                <div style="font-weight: 600; color: #0f172a; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                                    <svg xmlns="http://w3.org" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                                    To: {{ $movement->location_name }}
+                                </div>
+                                <div style="font-size: 10px; color: #64748b; margin-top: 1px;">{{ $movement->created_at->format('h:i A') }}</div>
+                            </div>
+                        @endif
+                    @endforeach
+                @empty
+                    <div style="font-size: 12px; color: #94a3b8; text-align: center; padding: 20px 0;">No history logs recorded for this visitor.</div>
+                @endforelse
+            </div>
 
-                <td style="text-align: center; vertical-align: middle;">{{ $v->checked_in_at ? $v->checked_in_at->format('M d, h:i A') : '—' }}</td>
-                <td style="text-align: center; vertical-align: middle;">{{ $v->checked_out_at ? $v->checked_out_at->format('M d, h:i A') : '—' }}</td>
+            <!-- Modal Footer Action -->
+            <div style="margin-top: 16px; padding-top: 12px; border-top: 1px solid #f1f5f9; text-align: right;">
+                <button type="button" onclick="closeTimelineModal('{{ $v->id }}')" style="background: #0f172a; color: white; border: none; padding: 7px 16px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Close History</button>
+            </div>
+        </div>
+    </div>
+@endforeach
 
-                
-                <!-- Action Delete Button Centered -->
-                <td style="text-align: center; vertical-align: middle;">
-                    <form action="{{ route('admin.delete-visitor', $v->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this visitor record?');" style="margin:0; display: inline-block;">
-                        @csrf
-                        @method('DELETE')
-                        <button class="action-delete-btn">
-    <!-- Flat Vector Line Trash Icon (Guaranteed to render) -->
-    <svg xmlns="http://w3.org" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
-        <path d="M3 6h18"></path>
-        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-    </svg>
-    Delete
-</button>
 
-                    </form>
-                </td>
-            </tr>
-        @empty
-            <tr>
-                <td colspan="10" style="text-align: center; vertical-align: middle;">No visitor logs found.</td>
-            </tr>
-        @endforelse
-    </tbody>
+
 </table>
 
 <!-- 🏆 SPARKING CLEAN BALANCED FOOTER SECTION BLOCK -->
@@ -523,7 +572,43 @@
 
     </script>
 
-  
+    <!-- 🏆 UNIVERSAL LIGHTWEIGHT JAVASCRIPT CONTROLLERS -->
+<script>
+    function openTimelineModal(id) {
+        const modal = document.getElementById('modal-' + id);
+        if (modal) {
+            modal.style.display = 'flex';
+        }
+    }
+
+    function closeTimelineModal(id) {
+        const modal = document.getElementById('modal-' + id);
+        if (modal) {
+            modal.style.display = 'none';
+        }
+    }
+
+    // Close modal if user clicks anywhere outside of the modal container card
+    window.addEventListener('click', function(event) {
+        if (event.target.id && event.target.id.startsWith('modal-')) {
+            event.target.style.display = 'none';
+        }
+    });
+</script>
+
+<style>
+    @keyframes modalFadeIn {
+        from { 
+            opacity: 0; 
+            transform: scale(0.96); 
+        }
+        to { 
+            opacity: 1; 
+            transform: scale(1); 
+        }
+    }
+</style>
+
 
 </body>
 </html>

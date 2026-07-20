@@ -31,14 +31,12 @@
         <div class="text-center">
             <div class="logo-circle"><span class="logo-text">{{ strtoupper(substr(env('APP_NAME', 'SU'), 0, 2)) }}</span></div>
             <h1>Express Pass Lookup</h1>
-            <!-- 🏆 UPDATE THIS SUBTITLE LINE inside visitor-reissue.blade.php -->
-<p class="subtitle">
-    Provide your ID and current visiting purpose to refresh your pass.
-    <strong style="display: block; margin-top: 5px; color: #b45309; font-size: 11px;">
-        ⚠️ Note: Outside guests/parents without a school ID must register as a new visitor.
-    </strong>
-</p>
-
+            <p class="subtitle">
+                Provide your ID and current visiting purpose to refresh your pass.
+                <strong style="display: block; margin-top: 5px; color: #b45309; font-size: 11px;">
+                    ⚠️ Note: Outside guests/parents without a school ID must register as a new visitor.
+                </strong>
+            </p>
         </div>
 
         @if ($errors->has('id_number'))
@@ -51,12 +49,13 @@
             @csrf 
             
             <div class="form-group">
-                <label>Your School ID / Registration Number</label>
-                <input type="text" name="id_number" id="id_number" placeholder="2026-12345" required autocomplete="off" maxlength="15">
-                <span class="hint-text" id="validationHint">Format must match: YYYY-XXXXX</span>
-            </div>
+    <label>Your Full Name / ID Number</label>
+    <!-- 🔄 Updated placeholder to invite names or IDs -->
+    <input type="text" name="id_number" id="id_number" placeholder="Enter your Registered Name or ID" required autocomplete="off" maxlength="50">
+    <span class="hint-text" id="validationHint">Enter the exact name or ID number you used when you registered.</span>
+</div>
 
-            <!-- 🆕 NEW DYNAMIC visit detail entries -->
+
             <div class="form-group">
                 <label>New Purpose of Visit</label>
                 <input type="text" name="purpose_of_visit" placeholder="e.g., Registrar, Submission, Meeting" required autocomplete="off">
@@ -67,7 +66,8 @@
                 <input type="text" name="person_to_visit" placeholder="e.g., Dr. Smith, Dean Office" required autocomplete="off">
             </div>
 
-            <button type="submit" class="submit-btn" id="submitBtn" disabled>Generate Express Pass</button>
+            <!-- 🔄 Button is now active by default, it does not wait for a format filter -->
+            <button type="submit" class="submit-btn" id="submitBtn">Generate Express Pass</button>
             <a href="{{ route('visitor.register') }}" class="back-btn">New Visitor Registration</a>
         </form>
     </div>
@@ -78,33 +78,16 @@
         const hint = document.getElementById('validationHint');
         const serverError = document.getElementById('serverError');
 
-        const idFormatRegex = /^\d{2,4}-\d{3,10}$/;
-
+        // 🔄 Listens only to field length to manage button lockout and clear server alerts
         idInput.addEventListener('input', function(e) {
-            let value = e.target.value.replace(/[^0-9a-zA-Z-]/g, '');
-            
-            if (value.length > 4 && !value.includes('-')) {
-                value = value.slice(0, 4) + '-' + value.slice(4);
-            }
-            e.target.value = value;
+            const value = e.target.value.trim();
 
             if(serverError) serverError.style.display = 'none';
 
-            if (idFormatRegex.test(value)) {
+            if (value.length > 0) {
                 idInput.classList.remove('invalid');
-                hint.style.color = '#16a34a';
-                hint.innerText = 'Valid format entered.';
                 submitBtn.disabled = false;
             } else {
-                if (value.length > 0) {
-                    idInput.classList.add('invalid');
-                    hint.style.color = '#ef4444';
-                    hint.innerText = 'Invalid format. Use a dash separator (e.g. 2026-12345).';
-                } else {
-                    idInput.classList.remove('invalid');
-                    hint.style.color = '#94a3b8';
-                    hint.innerText = 'Format must match: YYYY-XXXXX';
-                }
                 submitBtn.disabled = true;
             }
         });

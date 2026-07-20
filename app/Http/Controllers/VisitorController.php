@@ -200,33 +200,38 @@ public function processReissue(Request $request)
         'person_to_visit'   => 'required|string|max:255',
     ]);
 
-    // 2. Query the SQLite database for a match
-    $visitor = Visitor::where('id_number', $request->id_number)->first();
+    $userInput = trim($request->id_number);
+
+    // 2. 🔄 SMART SEARCH: Query SQLite for an exact ID match OR a flexible Name match
+    $visitor = Visitor::where('id_number', $userInput)
+        ->orWhere('full_name', 'LIKE', '%' . $userInput . '%')
+        ->first();
 
     if (!$visitor) {
-        return back()->withErrors(['id_number' => 'No visitor record found with that ID Number.']);
+        return back()->withErrors(['id_number' => 'No visitor record found matching that Name or ID Number. Please check your spelling.'])->withInput();
     }
 
-    // 3. 🏆 UPDATE the existing record with their fresh purpose and target details
+    // 3. UPDATE the existing record with their fresh purpose and target details
     $visitor->update([
         'purpose_of_visit' => $request->purpose_of_visit,
         'person_to_visit'  => $request->person_to_visit,
         'status'           => 'pending', // Reset status to pending for their new gate entry scan
     ]);
 
-        // Reconstruct the matching token graphic size properties
+    // Reconstruct the matching token graphic size properties
     $qrCode = QrCode::size(220)
         ->color(15, 23, 42)
         ->margin(1)
         ->generate($visitor->qr_code_token);
 
-    // 🏆 BULLETPROOF FIX: Force pass a static string type down to your view array
+    // Pass information down to your view array
     return view('qr-success', [
         'visitor'     => $visitor,
         'qrCode'      => $qrCode,
         'page_status' => 'returning'
     ]);
 }
+
 
 
 }

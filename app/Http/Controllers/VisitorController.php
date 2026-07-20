@@ -107,12 +107,15 @@ class VisitorController extends Controller
     // 4. Show the Administration Log Dashboard Panel with Search and Analytics
     public function showAdminDashboard()
     {
-        $allVisitors = Visitor::orderBy('created_at', 'desc')->get();
+        // 🏆 BEFORE: $allVisitors = Visitor::orderBy('created_at', 'desc')->get();
         
-        $totalRegistered = $allVisitors->count();
+         $allVisitors = Visitor::orderBy('created_at', 'desc')->paginate(15);
+        
+        // 🏆 CRITICAL FIX: Since $allVisitors is now paginated, we count directly from the model database root instead:
+        $totalRegistered = Visitor::count();
         $currentlyInside = Visitor::where('status', 'checked_in')->count();
         $totalCheckedOut = Visitor::where('status', 'checked_out')->count();
-        $totalPending = Visitor::where('status', 'pending')->count();
+        $totalPending     = Visitor::where('status', 'pending')->count();
 
         $dailyLogs = Visitor::selectRaw('DATE(created_at) as date, COUNT(*) as count')
             ->groupBy('date')

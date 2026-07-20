@@ -3,7 +3,8 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
-use Illuminate\Support\Facades\URL; // 👈 Make sure this line is here at the top!
+use Illuminate\Support\Facades\URL; 
+use Illuminate\Pagination\Paginator; // 👈 🏆 IMPORTED FOR PACKAGING BUTTON LINKS
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,12 +19,14 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
+     public function boot(): void
     {
-        // 👈 PASTE THIS EXACT LOGIC HERE
-        // It detects ngrok or online links and forces them to use secure HTTPS
+        // Keep your HTTPS force code block intact here...
         if (str_contains(request()->url(), 'ngrok-free.app') || config('app.env') === 'production') {
-            URL::forceScheme('https');
+            \Illuminate\Support\Facades\URL::forceScheme('https');
         }
+
+        // 🏆 UPDATE THIS LINE: Switches to clean, lightweight Previous/Next buttons
+           \Illuminate\Pagination\Paginator::useBootstrapFive();
     }
 }

@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>University Security Admin Dashboard</title>
     <script src="{{ asset('chart.js') }}"></script>
-    <script src="https://unpkg.com"></script>
 
     
     <style>
@@ -196,6 +195,56 @@
     from { opacity: 0; transform: scale(0.95); }
     to { opacity: 1; transform: scale(1); }
 }
+
+        /* ================================================================= */
+        /* 🏆 UNIFIED DASHBOARD PAGINATION UI COMPONENT                     */
+        /* ================================================================= */
+        .custom-pagination-tray ul.pagination {
+            display: flex !important;
+            flex-direction: row !important;
+            list-style: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            gap: 8px !important;
+            align-items: center !important;
+        }
+        .custom-pagination-tray .page-item {
+            display: inline-block !important;
+        }
+        /* Format buttons to match your dashboard rows exactly */
+        .custom-pagination-tray .page-link {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            height: 32px !important;
+            padding: 0 14px !important; 
+            font-size: 13px !important;
+            font-weight: 600 !important;
+            color: #475569 !important;
+            text-decoration: none !important;
+            background: #ffffff !important;
+            border: 1px solid #cbd5e1 !important;
+            border-radius: 6px !important;
+            transition: all 0.15s ease !important;
+            box-sizing: border-box !important;
+            user-select: none !important;
+        }
+        /* Match your premium dark slate UI colors on hover */
+        .custom-pagination-tray .page-link:hover:not(.disabled) {
+            background: #f1f5f9 !important;
+            color: #0f172a !important;
+            border-color: #0f172a !important;
+        }
+        /* Handle gray styles for dead-ends (like Previous on page 1) */
+        .custom-pagination-tray .page-item.disabled .page-link,
+        .custom-pagination-tray .page-item:disabled .page-link {
+            color: #cbd5e1 !important;
+            background: #f8fafc !important;
+            border-color: #e2e8f0 !important;
+            cursor: not-allowed !important;
+        }
+
+
 
 </style>
 
@@ -434,16 +483,21 @@
     </tbody>
 </table>
 
-                <!-- Dynamic client-side layout navigator component -->
-        <div class="pagination-bar">
-            <div class="pagination-info">
-                Showing 1 to {{ $allVisitors->count() }} of {{ $allVisitors->count() }} entries
-            </div>
-            <div class="btn-group">
-                <button class="pagination-btn" disabled>Previous</button>
-                <button class="pagination-btn" disabled>Next</button>
-            </div>
-        </div>
+<!-- 🏆 SPARKING CLEAN BALANCED FOOTER SECTION BLOCK -->
+<div style="display: flex; justify-content: space-between; align-items: center; margin-top: 16px; padding: 12px 4px 0 4px; border-top: 1px solid #f1f5f9;">
+    <!-- Metric entry text calculations tracker summary indicators -->
+    <div style="font-size: 13px; color: #64748b; font-family: inherit;">
+        Showing {{ $allVisitors->firstItem() }} to {{ $allVisitors->lastItem() }} of {{ $allVisitors->total() }} entries
+    </div>
+
+    <!-- 🏆 FIXED INTERFACE LINK: This forces a clean, minimalist Next / Prev layout template instantly -->
+    <div class="custom-pagination-tray">
+        {{ $allVisitors->links('pagination::simple-bootstrap-5') }}
+    </div>
+</div>
+
+
+
 
     </div> <!-- Close container -->
 
@@ -465,13 +519,7 @@
             });
         });
 
-        document.addEventListener("DOMContentLoaded", function() {
-        if (typeof lucide !== 'undefined') {
-            lucide.createIcons();
-        } else {
-            console.error("Lucide script failed to load from the network link.");
-        }
-    });
+       
 
     </script>
 

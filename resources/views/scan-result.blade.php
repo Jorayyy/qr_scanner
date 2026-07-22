@@ -101,7 +101,6 @@
     </style>
 </head>
 <body>
-
     <div class="card">
         <!-- Status Indicator Icon Badge -->
         <div class="status-badge">
@@ -117,6 +116,23 @@
                 <div class="data-row"><span class="label">Visitor Profile</span> <span class="val">{{ $visitor->full_name }}</span></div>
                 <div class="data-row"><span class="label">Purpose Logged</span> <span class="val">{{ $visitor->purpose_of_visit }}</span></div>
                 <div class="data-row"><span class="label">Target Escort</span> <span class="val">{{ $visitor->person_to_visit }}</span></div>
+                
+                <!-- 🆕 NEW VEHICLE TYPE FIELD LINKED TO SECURITY SUMMARY -->
+                <div class="data-row">
+                    <span class="label">Vehicle Type</span> 
+                    <span class="val">
+                        @switch($visitor->vehicle_type)
+                            @case('none') None (Pedestrian) @break
+                            @case('motorcycle') Motorcycle @break
+                            @case('tricycle') Tricycle @break
+                            @case('car_sedan') Car / Sedan @break
+                            @case('suv_van') SUV / Van @break
+                            @case('bicycle') Bicycle @break
+                            @default {{ ucfirst(str_replace('_', ' ', $visitor->vehicle_type)) }}
+                        @endswitch
+                    </span>
+                </div>
+
                 <div class="data-row">
                     <span class="label">Pass Status</span> 
                     <span class="val" style="color: {{ $success ? '#10b981' : '#ef4444' }}; text-transform: uppercase; font-size: 12px; font-weight:800;">

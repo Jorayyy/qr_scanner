@@ -13,7 +13,8 @@ class Visitor extends Model
         'id_number',
         'purpose_of_visit',
         'person_to_visit',
-        'qr_code_token', // 👈 This matches our query locator field
+        'vehicle_type',
+        'qr_code_token', // This matches our query locator field
         'status',
         'current_location',
         'checked_in_at',
@@ -31,5 +32,13 @@ class Visitor extends Model
     public function movements()
     {
         return $this->hasMany(Movement::class);
+    }
+
+    /**
+     * 🆕 RELATIONSHIP: Fetch all historic trip summaries under this profile name.
+     */
+    public function history()
+    {
+        return $this->hasMany(Movement::class)->whereIn('action_type', ['CHECKED_IN', 'CHECKED_OUT'])->latest();
     }
 }

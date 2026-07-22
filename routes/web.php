@@ -2,7 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\VisitorController;
-use App\Http\Controllers\UserController; // 👈 CRITICAL: Import your new user controller
+use App\Http\Controllers\UserController; 
 
 // -----------------------------------------------------------------
 // PUBLIC GUEST ROUTES (No Authentication Needed)
@@ -19,8 +19,9 @@ Route::get('/register', [VisitorController::class, 'showRegisterForm'])->name('v
 // The Action that handles form submissions
 Route::post('/register', [VisitorController::class, 'storeVisitor'])->name('visitor.store');
 
-// Route that accepts a token and an optional station location for scanning
-Route::get('/verify-scan/{token}/{location?}', [VisitorController::class, 'verifyScan'])->name('visitor.verify');
+// Reissue links for existing returning users
+Route::get('/visitor/reissue', [VisitorController::class, 'showReissueForm'])->name('visitor.reissue');
+Route::post('/visitor/reissue', [VisitorController::class, 'processReissue'])->name('visitor.reissue.submit');
 
 // Authentication Screen Views and Form Processors
 Route::get('/admin/login', [VisitorController::class, 'showLoginForm'])->name('login');
@@ -28,19 +29,13 @@ Route::post('/admin/login', [VisitorController::class, 'processLogin'])->name('a
 Route::post('/admin/logout', [VisitorController::class, 'processLogout'])->name('admin.logout');
 
 // -----------------------------------------------------------------
-// PUBLIC GUEST ROUTES (No Authentication Needed)
-// -----------------------------------------------------------------
-
-// Add these two lines under your existing visitor.store route:
-Route::get('/visitor/reissue', [VisitorController::class, 'showReissueForm'])->name('visitor.reissue');
-Route::post('/visitor/reissue', [VisitorController::class, 'processReissue'])->name('visitor.reissue.submit');
-
-
-// -----------------------------------------------------------------
 // 🔒 PROTECTED TERMINAL & ADMIN ROUTES (Only Logged-in Users)
 // -----------------------------------------------------------------
 Route::middleware(['auth'])->group(function () {
     
+    // 🆕 SECURED: Route that accepts a token and validates it for scanning terminal results
+    Route::get('/verify-scan/{token}/{location?}', [VisitorController::class, 'verifyScan'])->name('visitor.verify');
+
     // The Administration Dashboard Overview Portal URL
     Route::get('/admin/dashboard', [VisitorController::class, 'showAdminDashboard'])->name('admin.dashboard');
     

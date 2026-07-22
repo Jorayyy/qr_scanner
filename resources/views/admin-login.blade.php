@@ -5,58 +5,82 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>State University - Admin Authentication</title>
     <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background-color: #f8fafc; margin: 0; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 100vh; color: #0f172a; }
-        .login-card { background: #ffffff; padding: 40px; border-radius: 16px; border: 1px solid #e2e8f0; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.02), 0 8px 10px -6px rgba(0,0,0,0.02); max-width: 400px; width: 100%; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
+            /* 🆕 UPDATED: Loads the unified high-resolution EVSU campus image background asset */
+            background: linear-gradient(rgba(15, 23, 42, 0.55), rgba(15, 23, 42, 0.75)), 
+                        url('https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRTfP7BXODGeokb1X0ptCOu7pzgqNM7WiMOlQstwV-uRJ0JJfloFcGW74M&s=10') no-repeat center center fixed; 
+            background-size: cover;
+            margin: 0; 
+            padding: 20px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            min-height: 100vh; 
+            color: #f8fafc; 
+        }
+        .login-card { 
+            /* 🆕 UPDATED: Cohesive glassmorphism modal frame shell container block */
+            background: rgba(15, 23, 42, 0.65); 
+            backdrop-filter: blur(12px) saturate(140%);
+            -webkit-backdrop-filter: blur(12px) saturate(140%);
+            padding: 40px; 
+            border-radius: 24px; 
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3); 
+            max-width: 400px; 
+            width: 100%; 
+            box-sizing: border-box; 
+        }
         
         /* Premium Header Branding Styles */
         .brand-section { text-align: center; margin-bottom: 32px; }
-        .brand-logo-badge { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: #0f172a; color: #ffffff; font-size: 16px; font-weight: 700; border-radius: 12px; letter-spacing: 0.5px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(15, 23, 42, 0.15); text-transform: uppercase; }
-        h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: #0f172a; text-transform: uppercase; }
-        .brand-subtitle { font-size: 13px; color: #64748b; margin-top: 4px; font-weight: 400; }
+        .brand-logo-badge { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: #ffffff; color: #0f172a; font-size: 16px; font-weight: 700; border-radius: 12px; letter-spacing: 0.5px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); text-transform: uppercase; }
+        h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: #ffffff; text-transform: uppercase; }
+        .brand-subtitle { font-size: 13px; color: #cbd5e1; margin-top: 4px; font-weight: 400; }
         
         /* Clean Input Field Group Containers */
         .input-group { margin-bottom: 20px; }
-        label { display: block; font-size: 11px; font-weight: 600; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
+        label { display: block; font-size: 11px; font-weight: 600; color: #cbd5e1; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px; }
         
         /* Relative Wrapper to Align Vector Elements & Toggles */
-        .input-wrapper { position: relative; display: flex; align-items: center; }
-        .input-wrapper svg.field-icon { position: absolute; left: 14px; color: #94a3b8; pointer-events: none; }
+        .input-wrapper { position: relative; display: flex; align-items: center; width: 100%; }
+        .input-wrapper svg.field-icon { position: absolute; left: 14px; color: #94a3b8; pointer-events: none; z-index: 10; }
         
-        input { width: 100%; height: 42px; padding: 0 14px 0 40px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 14px; color: #334155; background: #ffffff; box-sizing: border-box; outline: none; font-family: inherit; transition: all 0.15s ease; }
-        input:focus { border-color: #0f172a; box-shadow: 0 0 0 3px rgba(15, 23, 42, 0.06); }
+        /* 🆕 UPDATED: Unified custom dark translucent vector node tracking input fields layout */
+        input { width: 100%; height: 42px; padding: 0 14px 0 40px; border: 1px solid rgba(255, 255, 255, 0.2) !important; border-radius: 8px; font-size: 14px; color: #ffffff; background: rgba(15, 23, 42, 0.6); box-sizing: border-box; outline: none; font-family: inherit; transition: all 0.15s ease; }
+        input:focus { border-color: #ffffff; background-color: rgba(15, 23, 42, 0.8); box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.15); }
+        input::placeholder { color: #94a3b8; opacity: 0.8; }
         
         /* Adjusted Padding for the Password Password Input field */
         input[type="password"], input[type="text"]#securityPassword { padding-right: 40px; }
         
         /* Flat Center Vector Eye Toggle Button Positioning */
-        .eye-toggle-btn { position: absolute; right: 12px; background: none; border: none; padding: 0; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.15s ease; }
-        .eye-toggle-btn:hover { color: #64748b; }
+        .eye-toggle-btn { position: absolute; right: 12px; background: none; border: none; padding: 0; color: #94a3b8; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: color 0.15s ease; z-index: 10; }
+        .eye-toggle-btn:hover { color: #cbd5e1; }
         
-        /* Premium Solid Black Authorize Access Action Button */
-        .login-btn { width: 100%; background: #0f172a; color: #ffffff; height: 44px; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; transition: background 0.15s ease; text-transform: uppercase; letter-spacing: 0.5px; }
-        .login-btn:hover { background: #1e293b; }
+        /* Premium Solid White Authorize Access Action Button */
+        .login-btn { width: 100%; background: #ffffff; color: #0f172a; height: 44px; border: none; border-radius: 8px; font-weight: 600; font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; transition: all 0.15s ease; text-transform: uppercase; letter-spacing: 0.5px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2); }
+        .login-btn:hover { background: #f1f5f9; transform: translateY(-1px); }
         
         /* Professional Muted Status Notification Banners */
         .alert { padding: 12px; border-radius: 8px; font-size: 13px; font-weight: 600; margin-bottom: 24px; text-align: left; display: flex; align-items: center; gap: 10px; border: 1px solid transparent; }
-        .alert-error { background: #fef2f2; color: #991b1b; border-color: #fee2e2; }
-        .alert-success { background: #f0fdf4; color: #166534; border-color: #bbf7d0; }
+        .alert-error { background: rgba(239, 68, 68, 0.2); color: #fca5a5; border-color: rgba(239, 68, 68, 0.4); }
+        .alert-success { background: rgba(22, 163, 74, 0.2); color: #86efac; border-color: rgba(22, 163, 74, 0.4); }
     </style>
 </head>
 <body>
 
+
     <div class="login-card">
         <!-- Brand Header Section -->
-        <!-- Open login.blade.php -->
-<!-- Replace your old brand-section inside login.blade.php with this: -->
-<div class="brand-section">
-    <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 16px;">
-        <div class="brand-logo-badge">SU</div>
-    </div>
-    <h1>{{ env('APP_NAME', 'State University') }}</h1>
-    <div class="brand-subtitle">Administrative Secure Access Panel</div>
-</div>
-
-
+        <div class="brand-section">
+            <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 16px;">
+                <div class="brand-logo-badge">SU</div>
+            </div>
+            <h1>{{ env('APP_NAME', 'State University') }}</h1>
+            <div class="brand-subtitle">Administrative Secure Access Panel</div>
+        </div>
 
         <!-- 🔴 Red Unsuccessful Warning Banner -->
         @if(session('error'))
@@ -81,7 +105,7 @@
             <div class="input-group">
                 <label>Security Username / Email</label>
                 <div class="input-wrapper">
-                    <svg class="field-icon" xmlns="http://w3.org" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6Ref 0 0 1 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                    <svg class="field-icon" xmlns="http://w3.org" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
                     <input type="text" name="username" placeholder="admin@gmail.com" required autocomplete="off" value="{{ old('username') }}">
                 </div>
             </div>

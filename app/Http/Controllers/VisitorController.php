@@ -18,38 +18,87 @@ class VisitorController extends Controller
     }
 
         // 2. Handle visitor form submission
-    public function storeVisitor(Request $request)
-    {
-        $request->validate([
-            'full_name'        => 'required|string|max:255',
-            'id_number'        => 'nullable|string|max:50', // 🏆 CHANGED: Made nullable
-            'contact_number'   => 'required|string|max:20',
-            'purpose_of_visit' => 'required|string|max:255',
-            'person_to_visit'  => 'required|string|max:255',
+   public function storeVisitor(Request $request)
+{
+    $request->validate([
+        'full_name'        => 'required|string|max:255',
+        'id_number'        => 'nullable|string|max:50', 
+        'contact_number'   => 'required|string|max:20',
+        'purpose_of_visit' => 'required|string|max:255',
+        'person_to_visit'  => 'required|string|max:255',
+        'vehicle_type'     => 'required|string|in:none,motorcycle,tricycle,car_sedan,suv_van,bicycle',
+    ]);
+
+    // 1. Look up an existing profile across your historic entries
+    $visitor = Visitor::where(function($query) use ($request) {
+        if ($request->id_number) {
+            $query->where('id_number', $request->id_number);
+        } else {
+            $query->where('full_name', $request->full_name)
+                  ->where('contact_number', $request->contact_number);
+        }
+    })->first();
+
+    // 2. If they exist, ensure their previous session isn't still active on campus
+    if ($visitor && in_array($visitor->status, ['pending', 'checked_in'])) {
+        return redirect()->back()->withErrors([
+            'duplicate' => 'A visitor session under this identity is already active on campus.'
+        ])->withInput();
+    }
+
+    $uniqueToken = Str::uuid()->toString();
+
+    if ($visitor) {
+        // 3a. PROFILE RECYCLING: Update the historical record with their fresh trip requirements
+        $visitor->update([
+            'purpose_of_visit' => $request->purpose_of_visit,
+            'person_to_visit'  => $request->person_to_visit,
+            'vehicle_type'     => $request->vehicle_type,
+            'qr_code_token'    => $uniqueToken,
+            'status'           => 'pending',
+            'current_location' => 'Main Gate',
+            'checked_in_at'    => null,
+            'checked_out_at'   => null
         ]);
-
-        $uniqueToken = Str::uuid()->toString();
-
-        // 🏆 FALLBACK LOGIC: If no ID number is supplied, generate a custom guest ID tag string
+    } else {
+        // 3b. NEW ENTRY: First time visitor onboarding scenario
         $idNumber = $request->id_number ?: 'GUEST-' . date('Ymd') . '-' . strtoupper(Str::random(4));
-
+        
         $visitor = Visitor::create([
             'full_name'        => $request->full_name,
-            'id_number'        => $idNumber, // Uses real ID or generated guest tracking tag
+            'id_number'        => $idNumber, 
             'contact_number'   => $request->contact_number,
             'purpose_of_visit' => $request->purpose_of_visit,
             'person_to_visit'  => $request->person_to_visit,
+            'vehicle_type'     => $request->vehicle_type,
             'qr_code_token'    => $uniqueToken,
-            'status'           => 'pending'
+            'status'           => 'pending',
+            'current_location' => 'Main Gate'
         ]);
-
-        $qrCode = QrCode::size(220)
-            ->color(15, 23, 42)
-            ->margin(1)
-            ->generate($visitor->qr_code_token);
-
-        return view('qr-success', compact('visitor', 'qrCode'));
     }
+
+    // 4. TIMELINE ENTRY LOGGING: Record the pass generation action inside your movements relationship safely
+    // Using try-catch to ensure that even if movements table schema varies, it won't crash the pass generator
+    try {
+        $visitor->movements()->create([
+            'action_type' => 'PASS_GENERATED', 
+            'location'    => 'Online Gateway',
+            'remarks'     => 'New entry pass requested for: ' . $request->purpose_of_visit
+        ]);
+    } catch (\Exception $e) {
+        // Log error internally if needed, fails gracefully so the user still gets their pass
+    }
+
+    $qrCode = QrCode::size(220)
+        ->color(15, 23, 42)
+        ->margin(1)
+        ->generate($visitor->qr_code_token);
+
+    return view('qr-success', compact('visitor', 'qrCode'));
+}
+
+
+
 
 
         // 3. Handle Campus Scans and Multi-Office Department Tracking Logic

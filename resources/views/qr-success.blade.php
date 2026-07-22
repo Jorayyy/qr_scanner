@@ -43,13 +43,13 @@
 </head>
 <body>
 
-        <div class="success-container">
+    <div class="success-container">
         <!-- Status Verification Check Shield badge -->
         <div class="status-badge-circle">
             <svg xmlns="http://w3.org" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
         </div>
         
-        <!-- 🏆 DYNAMIC CONDITIONAL HEADER BLOCK -->
+        <!-- DYNAMIC CONDITIONAL HEADER BLOCK -->
         @if(isset($page_status) && $page_status === 'returning')
             <h1>Welcome Back!</h1>
             <div class="subtitle">Your entry credentials for {{ env('APP_NAME', 'the university') }} have been reissued successfully.</div>
@@ -66,10 +66,8 @@
 
         <!-- Crisp QR Frame Area Matrix -->
         <div class="qr-frame-box">
-            <!-- Renders your high-res dynamic server package vector graphic seamlessly -->
             {!! $qrCode !!}
         </div>
-
 
         <!-- Technical Parameters Summary Grid -->
         <div class="meta-data-list">
@@ -77,13 +75,29 @@
                 <span class="meta-label">Visitor Name</span>
                 <span class="meta-value">{{ $visitor->full_name }}</span>
             </div>
-            <div class="meta-data-row">
+             <div class="meta-data-row">
                 <span class="meta-label">Visiting Target</span>
                 <span class="meta-value">{{ $visitor->person_to_visit }}</span>
             </div>
             <div class="meta-data-row">
                 <span class="meta-label">Purpose of Entry</span>
                 <span class="meta-value">{{ $visitor->purpose_of_visit }}</span>
+            </div>
+            
+            <!-- 🆕 NEW DYNAMIC VEHICLE TYPE SUMMARY PARAMETER ROW -->
+            <div class="meta-data-row">
+                <span class="meta-label">Vehicle Type</span>
+                <span class="meta-value">
+                    @switch($visitor->vehicle_type)
+                        @case('none') None (Pedestrian) @break
+                        @case('motorcycle') Motorcycle @break
+                        @case('tricycle') Tricycle @break
+                        @case('car_sedan') Car / Sedan @break
+                        @case('suv_van') SUV / Van @break
+                        @case('bicycle') Bicycle @break
+                        @default {{ ucfirst(str_replace('_', ' ', $visitor->vehicle_type)) }}
+                    @endswitch
+                </span>
             </div>
             
             <div class="token-display-field">

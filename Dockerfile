@@ -33,5 +33,5 @@ RUN npm install && npm run build
 # Expose network ports dynamically
 EXPOSE 8080
 
-# Combined Command: Creates the folder, initializes the blank SQLite file, migrates tables, and launches the server
-CMD ["sh", "-c", "mkdir -p /app/database && touch /app/database/database.sqlite && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
+# Combined Command: Creates the folder, initializes the blank SQLite file, migrates tables, and boots a public network listener
+CMD ["sh", "-c", "mkdir -p /app/database && touch /app/database/database.sqlite && php artisan migrate --force && php -S 0.0.0.0:${PORT:-8080} -t public"]

@@ -36,5 +36,8 @@ RUN composer install --no-interaction --optimize-autoloader \
 # 5. Expose dynamic web traffic lines
 EXPOSE 80
 
-# 6. Run migrations concurrently in a subshell block and explicitly launch Apache
-CMD ["sh", "-c", "php artisan config:clear && php artisan cache:clear && (php artisan migrate --force &) && apache2-foreground"]
+# 6. Execute maintenance sequences sequentially, then cleanly boot Apache as the master engine
+CMD php artisan config:clear; \
+    php artisan cache:clear; \
+    php artisan migrate --force; \
+    apache2-foreground

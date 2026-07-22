@@ -15,8 +15,11 @@ RUN apk add --no-cache \
     curl \
     $PHPIZE_DEPS && \
     docker-php-ext-configure gd --with-freetype --with-jpeg && \
-    docker-php-ext-install pdo_mysql pdo_sqlite gd && \
-    curl -sS https://getcomposer.org | php -- --install-dir=/usr/local/bin --filename=composer
+    docker-php-ext-install pdo_mysql pdo_sqlite gd
+
+# Force cache invalidation to download the binary installer smoothly
+ADD "https://getcomposer.org" /tmp/composer-setup.php
+RUN php /tmp/composer-setup.php --install-dir=/usr/local/bin --filename=composer && rm /tmp/composer-setup.php
 
 WORKDIR /app
 COPY . .

@@ -73,20 +73,16 @@
             "dont-discover": []
         }
     },
-        "config": {
+            "config": {
         "optimize-autoloader": true,
         "preferred-install": "dist",
         "sort-packages": true,
         "allow-plugins": {
             "pestphp/pest-plugin": true,
             "php-http/discovery": true
-        },
-        "platform": {
-            "php": "8.4.1",
-            "ext-gd": "8.4.1"
-        },
-        "platform-check": false
+        }
     },
+
 
     "minimum-stability": "stable",
     "prefer-stable": true

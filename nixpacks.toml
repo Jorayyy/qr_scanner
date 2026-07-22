@@ -1,0 +1,3 @@
+[providers.php]
+version = "8.4"
+libs = ["libgd-dev"]

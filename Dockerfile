@@ -30,9 +30,8 @@ RUN composer install --no-interaction --optimize-autoloader
 # Compile your user interface styles
 RUN npm install && npm run build
 
-# Expose network ports
+# Expose network ports dynamically
 EXPOSE 8080
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]
 
-# This line forces Laravel to bind straight to whatever port Railway assigns
-CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]
+# Combined Command: Creates the folder, initializes the blank SQLite file, migrates tables, and launches the server
+CMD ["sh", "-c", "mkdir -p /app/database && touch /app/database/database.sqlite && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]

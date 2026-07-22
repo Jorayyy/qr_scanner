@@ -12,6 +12,7 @@ RUN apk add --no-cache \
     nodejs \
     npm \
     linux-headers \
+    curl \
     $PHPIZE_DEPS && \
     docker-php-ext-configure gd --with-freetype --with-jpeg && \
     docker-php-ext-install pdo_mysql pdo_sqlite gd && \
@@ -29,4 +30,4 @@ RUN npm install && npm run build
 
 # Expose network ports
 EXPOSE 8080
-CMD php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=8080
+CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]

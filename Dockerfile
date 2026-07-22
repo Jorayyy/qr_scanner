@@ -17,19 +17,15 @@ RUN apt-get update && apt-get install -y \
 # 2. Securely copy the official Composer binary engine
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
-# 3. Configure Apache to point directly to Laravel's public directory
-ENV APACHE_DOCUMENT_ROOT /var/www/html/public
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
-RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
-
-# 4. Bind Apache dynamically using Railway's default internal PORT environment variable
-RUN sed -i 's/Listen 80/Listen ${PORT}/g' /etc/apache2/ports.conf
-RUN sed -i 's/<VirtualHost \*:80>/<VirtualHost *:${PORT}>/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/default-ssl.conf
-
 WORKDIR /var/www/html
 COPY . .
 
-# 5. Run standard installation and set file permissions for the web server
+# 3. Clean up default Apache configs and inject our custom port mapping configuration
+RUN rm -f /etc/apache2/sites-enabled/* /etc/apache2/ports.conf \
+    && cp apache.conf /etc/apache2/sites-available/laravel.conf \
+    && a2ensite laravel.conf
+
+# 4. Run standard installation and set file permissions for the web server
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-interaction --optimize-autoloader \
     && mkdir -p database storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
@@ -37,8 +33,8 @@ RUN composer install --no-interaction --optimize-autoloader \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 6. Make our custom deployment execution engine script bootable
-RUN chmod +x deploy.sh
+# 5. Expose dynamic web traffic lines
+EXPOSE 80
 
-# 7. Hand off container boot actions to the startup engine script
-CMD ["./deploy.sh"]
+# 6. Run migrations concurrently in a subshell block and explicitly launch Apache
+CMD ["sh", "-c", "php artisan config:clear && php artisan cache:clear && (php artisan migrate --force &) && apache2-foreground"]

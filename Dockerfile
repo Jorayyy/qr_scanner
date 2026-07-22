@@ -26,22 +26,25 @@ COPY . .
 RUN mkdir -p /run/nginx \
     && cp nginx.conf /etc/nginx/http.d/default.conf
 
-# 4. Run standard installation and prepare database directory structure explicitly
+# 4. THE SYSTEM USER ALIGNMENT FIX: Force Nginx to run as www-data globally
+RUN sed -i 's/user nginx;/user www-data;/g' /etc/nginx/nginx.conf || true
+
+# 5. Run standard installation and prepare database directory structure explicitly
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-interaction --optimize-autoloader \
     && mkdir -p database storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
     && rm -f database/database.sqlite \
     && touch database/database.sqlite
 
-# 5. Fix permissions completely so the application user owns the files and folders
-RUN chown -R nobody:nobody /var/www/html \
+# 6. Fix permissions so www-data owns absolutely everything cleanly
+RUN chown -R www-data:www-data /var/www/html /run/nginx /var/lib/nginx /var/log/nginx \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database \
     && chmod 664 /var/www/html/database/database.sqlite
 
-# 6. Expose custom container network line
+# 7. Expose custom container network line
 EXPOSE 8080
 
-# 7. Clear caches, execute migrations, and boot both PHP-FPM and Nginx simultaneously
+# 8. Clear caches, execute migrations, and boot both PHP-FPM and Nginx simultaneously
 CMD php artisan config:clear && \
     php artisan cache:clear && \
     php artisan migrate --force && \

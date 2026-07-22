@@ -46,5 +46,6 @@ RUN chown -R www-data:www-data /var/www/html /run/nginx /var/lib/nginx /var/log/
 EXPOSE 8080
 
 # 8. THE INITIALIZATION FIX: Wrap execution in a native shell to handle migrations and seeders correctly
-CMD ["sh", "-c", "php artisan migrate:fresh --seed --force && php artisan config:clear && php artisan cache:clear && php-fpm -D && nginx -g 'daemon off;'"]
+CMD ["sh", "-c", "php artisan migrate --force && php artisan config:clear && php artisan cache:clear && php-fpm -D && nginx -g 'daemon off;'"]
+
 

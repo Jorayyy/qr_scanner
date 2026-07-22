@@ -25,8 +25,10 @@ RUN rm -f /etc/apache2/sites-enabled/* /etc/apache2/ports.conf \
     && cp apache.conf /etc/apache2/sites-available/laravel.conf \
     && a2ensite laravel.conf
 
-# 4. THE MPM FIX: Force disable event/worker modules to stop the crash loop
-RUN a2dismod mpm_event mpm_worker || true \
+# 4. THE ABSOLUTE MPM FIX: Hard-comment out any alternative module loads in the root config files
+RUN sed -i 's/^LoadModule mpm_event_module/# LoadModule mpm_event_module/' /etc/apache2/mods-available/mpm_event.load || true \
+    && sed -i 's/^LoadModule mpm_worker_module/# LoadModule mpm_worker_module/' /etc/apache2/mods-available/mpm_worker.load || true \
+    && a2dismod mpm_event mpm_worker || true \
     && a2enmod mpm_prefork || true
 
 # 5. Run standard installation and prepare database directory structure

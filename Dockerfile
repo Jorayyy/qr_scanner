@@ -40,8 +40,12 @@ RUN composer install --no-interaction --optimize-autoloader \
 # 6. Expose network traffic lines
 EXPOSE 8080
 
-# 7. Auto-run database table setup on boot and launch Apache
-CMD php artisan migrate --force && apache2-foreground
+
+CMD php artisan config:clear && php artisan cache:clear && php artisan migrate --force ; apache2-foreground
+
+# 7. Ensure migrations complete and force Apache to stay in the foreground
+CMD php artisan migrate --force ; apache2-foreground
+
 
 
 

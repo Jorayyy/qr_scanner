@@ -1,20 +1,21 @@
 FROM composer:2.8 as composer
 FROM php:8.4-fpm-alpine
 
-# 1. Install system development libraries for QR codes, SQLite, and System Fonts
+# 1. Install system development libraries for QR codes, PostgreSQL, SQLite, and System Fonts
 RUN apk add --no-cache \
     nginx \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
     sqlite-dev \
+    postgresql-dev \
     zip \
     unzip \
     git \
     ttf-dejavu \
     fontconfig \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
-    && docker-php-ext-install pdo_mysql pdo_sqlite gd
+    && docker-php-ext-install pdo_pgsql pdo_mysql pdo_sqlite gd
 
 # 2. Securely copy the official Composer binary engine
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer
@@ -44,10 +45,5 @@ RUN chown -R www-data:www-data /var/www/html /run/nginx /var/lib/nginx /var/log/
 # 7. Expose custom container network line
 EXPOSE 8080
 
-# 8. THE INITIALIZATION FIX: Wipe duplicate constraints, run seeders, and start the servers
-CMD php artisan migrate:fresh --force && \
-    php artisan db:seed --force && \
-    php artisan config:clear && \
-    php artisan cache:clear && \
-    php-fpm -D && \
-    nginx -g "daemon off;"
+# 8. THE INITIALIZATION FIX: Wrap execution in a native shell to handle migrations and seeders correctly
+CMD ["sh", "-c", "php artisan migrate:fresh --seed --force && php artisan config:clear && php artisan cache:clear && php-fpm -D && nginx -g 'daemon off;'"]

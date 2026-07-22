@@ -1,6 +1,6 @@
 FROM php:8.4-fpm-alpine
 
-# Install system dependencies, graphics extensions, and node compiler
+# Install system dependencies, graphics extensions, sqlite libraries, and node compiler
 RUN apk add --no-cache \
     nginx \
     supervisor \
@@ -8,6 +8,7 @@ RUN apk add --no-cache \
     libpng-dev \
     libjpeg-turbo-dev \
     freetype-dev \
+    sqlite-dev \
     nodejs \
     npm \
     linux-headers \

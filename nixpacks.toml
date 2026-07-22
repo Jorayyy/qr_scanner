@@ -1,9 +1,0 @@
-[providers.php]
-date = "2026-07-22"
-
-[build]
-cmds = ["composer install --ignore-platform-reqs --optimize-autoloader --no-interaction", "npm run build"]
-
-[setup]
-version = "8.4"
-pkgs = ["php84", "php84-gd", "php84-pdo_sqlite"]

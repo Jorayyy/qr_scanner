@@ -44,8 +44,9 @@ RUN chown -R www-data:www-data /var/www/html /run/nginx /var/lib/nginx /var/log/
 # 7. Expose custom container network line
 EXPOSE 8080
 
-# 8. THE SEQUENCE FIX: Migrate the database FIRST to create the cache tables before flushing them
-CMD php artisan migrate --force && \
+# 8. THE INITIALIZATION FIX: Wipe duplicate constraints, run seeders, and start the servers
+CMD php artisan migrate:fresh --force && \
+    php artisan db:seed --force && \
     php artisan config:clear && \
     php artisan cache:clear && \
     php-fpm -D && \

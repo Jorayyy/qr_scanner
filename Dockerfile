@@ -22,7 +22,7 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
-# 4. Bind Apache dynamically using the dynamic system port script
+# 4. Bind Apache dynamically using Railway's default internal PORT environment variable
 RUN sed -i 's/Listen 80/Listen ${PORT}/g' /etc/apache2/ports.conf
 RUN sed -i 's/<VirtualHost \*:80>/<VirtualHost *:${PORT}>/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/default-ssl.conf
 
@@ -37,8 +37,8 @@ RUN composer install --no-interaction --optimize-autoloader \
     && chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 6. Expose default web traffic lines
-EXPOSE 80
+# 6. Make our custom deployment execution engine script bootable
+RUN chmod +x deploy.sh
 
-# 7. Start Apache as the absolute master process immediately
-CMD ["sh", "-c", "php artisan config:clear && php artisan cache:clear && php artisan migrate --force & exec apache2-foreground"]
+# 7. Hand off container boot actions to the startup engine script
+CMD ["./deploy.sh"]

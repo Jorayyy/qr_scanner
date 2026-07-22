@@ -44,9 +44,9 @@ RUN chown -R www-data:www-data /var/www/html /run/nginx /var/lib/nginx /var/log/
 # 7. Expose custom container network line
 EXPOSE 8080
 
-# 8. Clear caches, execute migrations, and boot both PHP-FPM and Nginx simultaneously
-CMD php artisan config:clear && \
+# 8. THE SEQUENCE FIX: Migrate the database FIRST to create the cache tables before flushing them
+CMD php artisan migrate --force && \
+    php artisan config:clear && \
     php artisan cache:clear && \
-    php artisan migrate --force && \
     php-fpm -D && \
     nginx -g "daemon off;"

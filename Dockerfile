@@ -40,12 +40,5 @@ RUN composer install --no-interaction --optimize-autoloader \
 # 6. Expose network traffic lines
 EXPOSE 8080
 
-
-CMD php artisan config:clear && php artisan cache:clear && php artisan migrate --force ; apache2-foreground
-
-# 7. Ensure migrations complete and force Apache to stay in the foreground
-CMD php artisan migrate --force ; apache2-foreground
-
-
-
-
+# 7. Clear caches, run migrations safely in the background, and instantly launch Apache
+CMD sh -c "php artisan config:clear && php artisan cache:clear && php artisan migrate --force & exec apache2-foreground"

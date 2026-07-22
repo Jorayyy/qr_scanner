@@ -25,19 +25,18 @@ RUN rm -f /etc/apache2/sites-enabled/* /etc/apache2/ports.conf \
     && cp apache.conf /etc/apache2/sites-available/laravel.conf \
     && a2ensite laravel.conf
 
-# 4. Run standard installation and set file permissions for the web server
+# 4. Run standard installation and prepare database directory structure
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-interaction --optimize-autoloader \
     && mkdir -p database storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
-    && touch database/database.sqlite \
-    && chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+    && touch database/database.sqlite
 
-# 5. Expose dynamic web traffic lines
+# 5. Fix permissions completely so the webserver owns everything before running tasks
+RUN chown -R www-data:www-data /var/www/html \
+    && chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+
+# 6. Expose dynamic web traffic lines
 EXPOSE 80
 
-# 6. Execute maintenance sequences sequentially, then cleanly boot Apache as the master engine
-CMD php artisan config:clear; \
-    php artisan cache:clear; \
-    php artisan migrate --force; \
-    apache2-foreground
+# 7. Start Apache as the absolute master process first, bypassing console exit locks entirely
+CMD ["apache2-foreground"]

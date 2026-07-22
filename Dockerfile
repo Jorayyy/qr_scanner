@@ -26,15 +26,17 @@ COPY . .
 RUN mkdir -p /run/nginx \
     && cp nginx.conf /etc/nginx/http.d/default.conf
 
-# 4. Run standard installation and prepare database directory structure
+# 4. Run standard installation and prepare database directory structure explicitly
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-interaction --optimize-autoloader \
     && mkdir -p database storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
+    && rm -f database/database.sqlite \
     && touch database/database.sqlite
 
-# 5. Fix permissions completely so both Nginx and PHP can write safely
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+# 5. Fix permissions completely so the application user owns the files and folders
+RUN chown -R nobody:nobody /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database \
+    && chmod 664 /var/www/html/database/database.sqlite
 
 # 6. Expose custom container network line
 EXPOSE 8080

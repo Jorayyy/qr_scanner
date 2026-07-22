@@ -33,3 +33,6 @@ RUN npm install && npm run build
 # Expose network ports
 EXPOSE 8080
 CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=8080"]
+
+# This line forces Laravel to bind straight to whatever port Railway assigns
+CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8080}"]

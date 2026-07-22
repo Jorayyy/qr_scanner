@@ -1,35 +1,44 @@
 FROM composer:2.8 as composer
-FROM php:8.4-cli-alpine
+FROM php:8.4-apache
 
-# Install system dependencies, graphics extensions, and sqlite libraries
-RUN apk add --no-cache \
-    bash \
+# 1. Install system development libraries for QR codes and SQLite
+RUN apt-get update && apt-get install -y \
     libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    sqlite-dev \
-    nodejs \
-    npm \
-    linux-headers \
-    $PHPIZE_DEPS && \
-    docker-php-ext-configure gd --with-freetype --with-jpeg && \
-    docker-php-ext-install pdo_mysql pdo_sqlite gd
+    libjpeg-dev \
+    libfreetype6-dev \
+    libsqlite3-dev \
+    zip \
+    unzip \
+    git \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install pdo_mysql pdo_sqlite gd \
+    && a2enmod rewrite
 
-# Securely copy the pristine composer bin execution engine
+# 2. Securely copy the official Composer binary engine
 COPY --from=composer /usr/bin/composer /usr/local/bin/composer
 
-WORKDIR /app
+# 3. Configure Apache to point directly to Laravel's public directory
+ENV APACHE_DOCUMENT_ROOT /var/www/html/public
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
+RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
+
+# 4. Change Apache's default port 80 to match Railway's required $PORT variable
+RUN sed -i 's/Listen 80/Listen ${PORT}/g' /etc/apache2/ports.conf
+RUN sed -i 's/<VirtualHost \*:80>/<VirtualHost *:${PORT}>/g' /etc/apache2/sites-available/0000-default.conf /etc/apache2/sites-available/default-ssl.conf
+
+WORKDIR /var/www/html
 COPY . .
 
-# Run composer installation smoothly inside the custom container env
+# 5. Run standard installation and set file permissions for the web server
 ENV COMPOSER_ALLOW_SUPERUSER=1
-RUN composer install --no-interaction --optimize-autoloader
+RUN composer install --no-interaction --optimize-autoloader \
+    && mkdir -p database storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
+    && touch database/database.sqlite \
+    && chown -R www-data:www-data /var/www/html \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Compile your user interface styles
-RUN npm install && npm run build
+# 6. Expose network traffic lines
+EXPOSE 80
 
-# Expose network ports dynamically
-EXPOSE 8080
-
-# This line uses Octane/Swoole philosophy via a production ready, multi-threaded PHP worker binding loop
-CMD ["sh", "-c", "mkdir -p /app/database && touch /app/database/database.sqlite && php artisan migrate --force && php -S 0.0.0.0:$PORT public/index.php"]
+# 7. Auto-run database table setup on boot and launch the professional Apache web server
+CMD ["sh", "-c", "php artisan migrate --force && apache2-foreground"]

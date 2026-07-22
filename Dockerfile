@@ -1,7 +1,7 @@
 FROM composer:2.8 as composer
 FROM php:8.4-fpm-alpine
 
-# 1. Install system development libraries for QR codes and SQLite
+# 1. Install system development libraries for QR codes, SQLite, and System Fonts
 RUN apk add --no-cache \
     nginx \
     libpng-dev \
@@ -11,6 +11,8 @@ RUN apk add --no-cache \
     zip \
     unzip \
     git \
+    ttf-dejavu \
+    fontconfig \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_mysql pdo_sqlite gd
 

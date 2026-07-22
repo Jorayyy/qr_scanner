@@ -25,18 +25,22 @@ RUN rm -f /etc/apache2/sites-enabled/* /etc/apache2/ports.conf \
     && cp apache.conf /etc/apache2/sites-available/laravel.conf \
     && a2ensite laravel.conf
 
-# 4. Run standard installation and prepare database directory structure
+# 4. THE MPM FIX: Force disable event/worker modules to stop the crash loop
+RUN a2dismod mpm_event mpm_worker || true \
+    && a2enmod mpm_prefork || true
+
+# 5. Run standard installation and prepare database directory structure
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer install --no-interaction --optimize-autoloader \
     && mkdir -p database storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
     && touch database/database.sqlite
 
-# 5. Fix permissions completely so the webserver owns everything before running tasks
+# 6. Fix permissions completely so the webserver owns everything
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
 
-# 6. Expose dynamic web traffic lines
+# 7. Expose dynamic web traffic lines
 EXPOSE 80
 
-# 7. Start Apache as the absolute master process first, bypassing console exit locks entirely
-CMD ["apache2-foreground"]
+# 8. Run migrations on boot and start Apache cleanly
+CMD php artisan config:clear && php artisan cache:clear && php artisan migrate --force && apache2-foreground

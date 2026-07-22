@@ -22,9 +22,9 @@ ENV APACHE_DOCUMENT_ROOT /var/www/html/public
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/*.conf
 RUN sed -ri -e 's!/var/www/html!${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/apache2.conf
 
-# 4. Change Apache's default port 80 to match Railway's required $PORT variable
-RUN sed -i 's/Listen 80/Listen ${PORT}/g' /etc/apache2/ports.conf
-RUN sed -i 's/<VirtualHost \*:80>/<VirtualHost *:${PORT}>/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/default-ssl.conf
+# 4. Force Apache to listen on port 8080 explicitly
+RUN sed -i 's/Listen 80/Listen 8080/g' /etc/apache2/ports.conf
+RUN sed -i 's/<VirtualHost \*:80>/<VirtualHost \*:8080>/g' /etc/apache2/sites-available/000-default.conf /etc/apache2/sites-available/default-ssl.conf
 
 WORKDIR /var/www/html
 COPY . .
@@ -38,7 +38,10 @@ RUN composer install --no-interaction --optimize-autoloader \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # 6. Expose network traffic lines
-EXPOSE 80
+EXPOSE 8080
 
-# 7. Auto-run database table setup on boot and launch the professional Apache web server
-CMD ["sh", "-c", "php artisan migrate --force && apache2-foreground"]
+# 7. Auto-run database table setup on boot and launch Apache
+CMD php artisan migrate --force && apache2-foreground
+
+
+

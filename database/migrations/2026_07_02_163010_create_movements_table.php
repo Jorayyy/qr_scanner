@@ -14,10 +14,16 @@ return new class extends Migration
     Schema::create('movements', function (Blueprint $table) {
         $table->id();
         $table->foreignId('visitor_id')->constrained()->onDelete('cascade');
-        $table->string('location_name');
+        
+        // 🔑 THE TWO CRITICAL FIXES: Ensure both columns are explicitly defined!
+        $table->string('action_type')->nullable(); 
+        $table->string('location_name')->nullable();
+        $table->text('remarks')->nullable(); // 🟢 ADD THIS EXACT LINE HERE!
+        
         $table->timestamps();
     });
 }
+
 
 
     /**

@@ -14,12 +14,18 @@ class DatabaseSeeder extends Seeder
      * Seed the application's database.
      */
     public function run(): void
-    {
-        // User::factory(10)->create();
+{
+    // Automatically creates your superadmin account on every fresh migration loop!
+    \App\Models\User::updateOrCreate(
+        ['email' => 'superadmin@gmail.com'],
+        [
+            'name' => 'Master Administrator',
+            'password' => bcrypt('superadmin1234'),
+            'role' => 'admin'
+        ]
+    );
 
-        User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
-        ]);
-    }
+    // Keep any other seeders you have below this line...
+}
+
 }

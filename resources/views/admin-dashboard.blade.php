@@ -343,7 +343,7 @@
 
 
 
-    <!-- Analytics counters box -->
+        <!-- 🆕 UPDATED: Re-balanced 4-Column Summary Tiles -->
     <div class="stats-grid">
         <div class="stat-card pending">
             <div class="stat-label">Total Passes Issued</div>
@@ -353,11 +353,16 @@
             <div class="stat-label">Currently On Campus</div>
             <div class="stat-val" style="color: #0f172a;">{{ $currentlyInside }}</div>
         </div>
+        <div class="stat-card vehicle" style="border-left: 3px solid #0284c7;">
+            <div class="stat-label">Vehicles On Campus</div>
+            <div class="stat-val" style="color: #0284c7;">{{ $vehiclesInside }}</div>
+        </div>
         <div class="stat-card">
             <div class="stat-label">Total Checked Out</div>
             <div class="stat-val">{{ $totalCheckedOut }}</div>
         </div>
     </div>
+
 
 
 
@@ -401,13 +406,15 @@
         <!-- Logs database records panel container -->
         <div class="table-card">
             <table cellspacing="0">
-    <thead>
+        <thead>
         <tr>
             <!-- Added inline styles to force all headers to center perfectly -->
             <th style="text-align: center;">Visitor Name</th>
             <th style="text-align: center;">ID NUMBER</th>
             <th style="text-align: center;">Purpose of Visit</th>
             <th style="text-align: center;">Person Visiting</th>
+            <!-- 🆕 NEW SLUICE HOLE GRID FIELD FOR VEHICLE TRACKS -->
+            <th style="text-align: center; color: #0284c7;">Transit / Vehicle</th>
             <th style="text-align: center;">Status</th>
             <th style="text-align: center;">Current Location</th>
             <th style="text-align: center;">Tracking History Timeline</th>
@@ -415,48 +422,116 @@
         </tr>
     </thead>
 
+
     <tbody id="visitorTableBody">
     @forelse($allVisitors as $v)
         <tr class="visitor-row" data-date="{{ $v->created_at->format('Y-m-d') }}">
-            <td style="text-align: center; vertical-align: middle;"><strong>{{ $v->full_name }}</strong></td>
+            
+            <!-- ✅ FIX 1: Concatenate the fresh split name fields directly in the grid cell -->
+            <td style="text-align: center; vertical-align: middle;">
+                <strong>{{ trim($v->first_name . ' ' . $v->middle_name . ' ' . $v->last_name) }}</strong>
+            </td>
+            
             <td style="text-align: center; vertical-align: middle;">{{ $v->id_number ?? 'N/A' }}</td>
             <td style="text-align: center; vertical-align: middle;">{{ $v->purpose_of_visit }}</td>
-            <td style="text-align: center; vertical-align: middle;">{{ $v->person_to_visit }}</td>
+            <td style="text-align: center; vertical-align: middle;">{{ $v->person_to_visit ?? 'N/A' }}</td>
+            
+            <!-- Dynamic Transit / Vehicle Details Column -->
+            <td style="text-align: center; vertical-align: middle;">
+                @if($v->vehicle_type === 'none' || !$v->vehicle_type)
+                    <span style="color: #64748b; font-size: 12px; font-weight: 500;">🚶 Pedestrian</span>
+                @else
+                    <div class="transit-cell-wrapper" style="display: inline-flex; flex-direction: column; align-items: center; gap: 2px; text-align: center;">
+                        <span class="transit-badge-inline" style="font-size: 13px; font-weight: 600; color: #0f172a;">
+                            {{ $v->vehicle_type === 'motorcycle' ? '🏍️' : '🚗' }} {{ strtoupper($v->vehicle_brand) }}
+                        </span>
+                        <span class="transit-meta-text" style="font-size: 11px; color: #64748b;">
+                            {{ $v->vehicle_model }} • <span class="transit-plate-caps" style="font-family: monospace; font-weight: 700; color: #1e293b; background: #f1f5f9; padding: 1px 4px; border-radius: 4px;">{{ strtoupper($v->vehicle_plate) }}</span>
+                        </span>
+                    </div>
+                @endif
+            </td>
+
             <td style="text-align: center; vertical-align: middle;">
                 <span class="badge {{ $v->status }}">{{ $v->status }}</span>
             </td>
-            <td style="text-align: center; vertical-align: middle;">{{ $v->current_location }}</td>
+            <td style="text-align: center; vertical-align: middle; font-weight: 500;">{{ $v->current_location }}</td>
             
-            <!-- ⚡ TRACKING HISTORY COLUMN BUTTON -->
+                       <!-- ⚡ TRACKING HISTORY COLUMN BUTTON & INTEGRATED LIVE MODAL -->
             <td style="text-align: center; vertical-align: middle; width: 140px;">
-                <button type="button" class="action-history-btn" onclick="openTimelineModal('{{ $v->id }}')" style="display: inline-flex; align-items: center; gap: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
+                <!-- ✅ FIX 1: Reverted button click trigger back to clean target mapping parameter -->
+                <button type="button" class="action-history-btn" 
+                        onclick="openTimelineModal('{{ $v->id }}')" 
+                        style="display: inline-flex; align-items: center; gap: 6px; background: #f1f5f9; border: 1px solid #cbd5e1; color: #334155; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">
                     <svg xmlns="http://w3.org" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     History ({{ $v->movements->count() }})
                 </button>
+
+                <!-- ✅ FIX 2: Restored internal structural conditions parsing upper-case action strings natively -->
+                <div id="modal-{{ $v->id }}" style="display: none; position: fixed; inset: 0; background: rgba(15, 23, 42, 0.6); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); align-items: center; justify-content: center; z-index: 9999; padding: 20px;">
+                    <div style="background: #ffffff; padding: 32px; border-radius: 16px; max-width: 440px; width: 100%; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); position: relative; border: 1px solid #e2e8f0;">
+                        <button type="button" onclick="closeTimelineModal('{{ $v->id }}')" style="position: absolute; right: 16px; top: 16px; background: none; border: none; font-size: 18px; color: #94a3b8; cursor: pointer; font-weight: bold;">&times;</button>
+                        
+                        <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: #64748b; letter-spacing: 0.5px; margin-bottom: 2px;">Registration ID: {{ $v->id_number }}</div>
+                        <h3 style="margin: 0 0 20px 0; font-size: 18px; font-weight: 700; color: #0f172a;">{{ trim($v->first_name . ' ' . $v->last_name) }}</h3>
+                        
+                        <div style="text-align: left; max-height: 280px; overflow-y: auto; padding-right: 4px;">
+                            @forelse($v->movements as $movement)
+                                <div style="display: flex; align-items: flex-start; gap: 12px; margin-bottom: 16px; font-size: 13px;">
+                                    
+                                    @if(strtoupper($movement->action_type) === 'CHECKED_IN')
+                                        <span style="color: #16a34a; font-size: 14px; font-weight: bold;">➡️</span>
+                                        <div>
+                                            <strong style="color: #16a34a;">Checked In ({{ $movement->location_name }})</strong>
+                                            <div style="font-size: 11px; color: #64748b;">{{ \Carbon\Carbon::parse($movement->created_at)->format('h:i A') }}</div>
+                                            <div style="font-size: 12px; color: #334155; margin-top: 2px;">{{ $movement->remarks }}</div>
+                                        </div>
+                                    @elseif(strtoupper($movement->action_type) === 'CHECKED_OUT')
+                                        <span style="color: #475569; font-size: 14px; font-weight: bold;">⬅️</span>
+                                        <div>
+                                            <strong style="color: #475569;">Checked Out ({{ $movement->location_name }})</strong>
+                                            <div style="font-size: 11px; color: #64748b;">{{ \Carbon\Carbon::parse($movement->created_at)->format('h:i A') }}</div>
+                                            <div style="font-size: 12px; color: #334155; margin-top: 2px;">{{ $movement->remarks }}</div>
+                                        </div>
+                                    @else
+                                        <span style="color: #0284c7; font-size: 14px; font-weight: bold;">📍</span>
+                                        <div>
+                                            <strong style="color: #0284c7;">To: {{ $movement->location_name }}</strong>
+                                            <div style="font-size: 11px; color: #64748b;">{{ \Carbon\Carbon::parse($movement->created_at)->format('h:i A') }}</div>
+                                            <div style="font-size: 12px; color: #334155; margin-top: 2px;">{{ $movement->remarks }}</div>
+                                        </div>
+                                    @endif
+                                    
+                                </div>
+                            @empty
+                                <p style="text-align: center; color: #64748b; font-size: 13px; margin: 20px 0;">No movement tracking logs recorded for this pass session.</p>
+                            @endforelse
+                        </div>
+                        
+                        <button type="button" onclick="closeTimelineModal('{{ $v->id }}')" style="width: 100%; background: #0f172a; color: #ffffff; border: none; height: 38px; border-radius: 6px; font-weight: 600; font-size: 13px; margin-top: 10px; cursor: pointer;">Close History</button>
+                    </div>
+                </div>
             </td>
+
             
             <!-- ACTION DELETE BUTTON -->
             <td style="text-align: center; vertical-align: middle; width: 100px;">
                 <form action="{{ route('admin.delete-visitor', $v->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this visitor record?');" style="margin:0; display: inline-block;">
                     @csrf
                     @method('DELETE')
-                    <button type="submit" class="action-delete-btn">
-                        <svg xmlns="http://w3.org" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display: block;">
-                            <path d="M3 6h18"></path>
-                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                        </svg>
-                        Delete
-                    </button>
+                    <button type="submit" class="action-delete-btn">Delete</button>
                 </form>
             </td>
         </tr>
     @empty
         <tr>
-            <td colspan="8" style="text-align: center; vertical-align: middle;">No visitor logs found.</td>
+            <td colspan="9" style="text-align: center; vertical-align: middle; padding: 24px; color: #64748b; font-weight: 500;">No visitor logs found.</td>
         </tr>
     @endforelse
 </tbody>
+
+
+
 
 <!-- 🏆 VISITOR TIMELINE LOG MODAL WRAPPERS -->
 @foreach($allVisitors as $v)
@@ -481,40 +556,59 @@
                         {{ \Carbon\Carbon::parse($date)->format('M d, Y') }}
                     </div>
 
-                    <!-- Ordered Movements Grid Loops -->
-                    @foreach($dayMovements as $movement)
-                        @php
-                            $locName = strtolower(trim($movement->location_name));
-                            $isEntry = (str_contains($locName, 'main gate') || str_contains($locName, 'entry') || str_contains($locName, 'check in'));
-                            $isExit = (str_contains($locName, 'left campus') || str_contains($locName, 'exit') || str_contains($locName, 'check out'));
-                        @endphp
+                 <!-- Ordered Movements Grid Loops -->
+<!-- Ordered Movements Grid Loops -->
+@foreach($dayMovements as $movement)
+    @php
+        // 1. Fetch and clean BOTH variables from the database to remove any formatting typos
+        $dbAction   = strtoupper(trim($movement->action_type ?? ''));
+        $dbLocation = $movement->location_name ?? 'Main Gate';
+    @endphp
 
-                        @if($isEntry)
-                            <div style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid #16a34a;">
-                                <div style="font-weight: 700; color: #16a34a; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
-                                    <svg xmlns="http://w3.org" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
-                                    Checked In ({{ $movement->location_name }})
-                                </div>
-                                <div style="font-size: 10px; color: #64748b; margin-top: 1px;">{{ $movement->created_at->format('h:i A') }}</div>
-                            </div>
-                        @elseif($isExit)
-                            <div style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid #dc2626;">
-                                <div style="font-weight: 700; color: #dc2626; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
-                                    <svg xmlns="http://w3.org" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                                    Checked Out ({{ $movement->location_name }})
-                                </div>
-                                <div style="font-size: 10px; color: #64748b; margin-top: 1px;">{{ $movement->created_at->format('h:i A') }}</div>
-                            </div>
-                        @else
-                            <div style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid #3b82f6;">
-                                <div style="font-weight: 600; color: #0f172a; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
-                                    <svg xmlns="http://w3.org" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
-                                    To: {{ $movement->location_name }}
-                                </div>
-                                <div style="font-size: 10px; color: #64748b; margin-top: 1px;">{{ $movement->created_at->format('h:i A') }}</div>
-                            </div>
-                        @endif
-                    @endforeach
+    {{-- 📑 1. OPTION B CUSTOM PATH: INITIAL REGISTRATION MILESTONE --}}
+    @if($dbAction === 'PASS_GENERATED')
+        <div style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid #64748b;">
+            <div style="font-weight: 700; color: #64748b; font-size: 12px; display: inline-flex; align-items: center; gap: 6px;">
+                <svg xmlns="http://w3.org" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                QR Pass Generated
+            </div>
+            <div style="font-size: 10px; color: #64748b; margin-top: 1px;">{{ $movement->created_at->format('h:i A') }}</div>
+        </div>
+
+    {{-- ➡️ 2. CONDITIONAL PATH: GENUINE ENTRANCE RECORD --}}
+    @elseif($dbAction === 'CHECKED_IN')
+        <div style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid #16a34a;">
+            <div style="font-weight: 700; color: #16a34a; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                <svg xmlns="http://w3.org" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+                Checked In ({{ $dbLocation }})
+            </div>
+            <div style="font-size: 10px; color: #64748b; margin-top: 1px;">{{ $movement->created_at->format('h:i A') }}</div>
+        </div>
+
+    {{-- ⬅️ 3. CONDITIONAL PATH: GENUINE CAMPUS EXIT RECORD --}}
+    @elseif($dbAction === 'CHECKED_OUT')
+        <div style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid #dc2626;">
+            <div style="font-weight: 700; color: #dc2626; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                <svg xmlns="http://w3.org" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                Checked Out ({{ $dbLocation }})
+            </div>
+            <div style="font-size: 10px; color: #64748b; margin-top: 1px;">{{ $movement->created_at->format('h:i A') }}</div>
+        </div>
+
+    {{-- 📍 4. CONDITIONAL PATH: INTER-OFFICE HOPS / FALLBACKS --}}
+    @else
+        <div style="margin-bottom: 12px; padding-left: 10px; border-left: 2px solid #3b82f6;">
+            <div style="font-weight: 600; color: #0f172a; font-size: 12px; display: inline-flex; align-items: center; gap: 4px;">
+                <svg xmlns="http://w3.org" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" stroke-width="2.5"><polygon points="5 3 19 12 5 21 5 3"></polygon></svg>
+                To: {{ $dbLocation }}
+            </div>
+            <div style="font-size: 10px; color: #64748b; margin-top: 1px;">{{ $movement->created_at->format('h:i A') }}</div>
+        </div>
+    @endif
+@endforeach
+
+
+
                 @empty
                     <div style="font-size: 12px; color: #94a3b8; text-align: center; padding: 20px 0;">No history logs recorded for this visitor.</div>
                 @endforelse
@@ -574,19 +668,22 @@
 
     <!-- 🏆 UNIVERSAL LIGHTWEIGHT JAVASCRIPT CONTROLLERS -->
 <script>
-    function openTimelineModal(id) {
-        const modal = document.getElementById('modal-' + id);
-        if (modal) {
-            modal.style.display = 'flex';
-        }
+// ✅ THE COMPACT VISIBILITY TOGGLES
+function openTimelineModal(id) {
+    const modal = document.getElementById('modal-' + id);
+    if (modal) {
+        modal.style.display = 'flex';
     }
+}
 
-    function closeTimelineModal(id) {
-        const modal = document.getElementById('modal-' + id);
-        if (modal) {
-            modal.style.display = 'none';
-        }
+function closeTimelineModal(id) {
+    const modal = document.getElementById('modal-' + id);
+    if (modal) {
+        modal.style.display = 'none';
     }
+}
+
+
 
     // Close modal if user clicks anywhere outside of the modal container card
     window.addEventListener('click', function(event) {
@@ -608,6 +705,64 @@
         }
     }
 </style>
+
+<script>
+// Global buffer container to catch high-speed hardware scanner inputs
+let scannerBuffer = '';
+let lastKeyTime = Date.now();
+
+document.addEventListener('keypress', function(e) {
+    const currentTime = Date.now();
+    
+    // Clear buffer if the typing speed is slow (human typing instead of scanner device hardware)
+    if (currentTime - lastKeyTime > 50) {
+        scannerBuffer = '';
+    }
+    
+    lastKeyTime = currentTime;
+
+    // Detect execution/return break key sent by hardware scanner guns
+    if (e.key === 'Enter') {
+        if (scannerBuffer.trim().length > 3) {
+            e.preventDefault();
+            triggerExpressModalLookup(scannerBuffer.trim());
+        }
+        scannerBuffer = '';
+        return;
+    }
+
+    // Append char values if it's alphanumeric data
+    if (e.key.match(/[a-zA-Z0-9\-]/)) {
+        scannerBuffer += e.key;
+    }
+});
+
+/**
+ * Rapid AJAX query that matches pass tokens and opens the modal dynamically
+ */
+function triggerExpressModalLookup(tokenString) {
+    fetch(`{{ route('visitor.lookup') }}?search_query=${encodeURIComponent(tokenString)}`)
+        .then(res => res.json())
+        .then(data => {
+            if (data.length > 0) {
+                const visitorId = data[0].id;
+                
+                // 🟢 HOOK TO YOUR EXISTING MODAL: 
+                // Triggers the exact same click event as the row's "History" button!
+                const targetHistoryBtn = document.querySelector(`button[data-visitor-id="${visitorId}"]`) || 
+                                         document.querySelector(`a[href*="${visitorId}"]`);
+                
+                if (targetHistoryBtn) {
+                    targetHistoryBtn.click();
+                } else {
+                    alert(`Pass recognized: ${data[0].full_name}\nStatus: ${data[0].status}`);
+                }
+            }
+        })
+        .catch(err => console.error("Scanner hook failure:", err));
+}
+</script>
+
 
 
 </body>

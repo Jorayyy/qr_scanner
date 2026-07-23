@@ -11,7 +11,7 @@ use App\Http\Controllers\UserController;
 // The default welcome page
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome');
 
 // The Visitor Registration Form Page
 Route::get('/register', [VisitorController::class, 'showRegisterForm'])->name('visitor.register');
@@ -23,7 +23,10 @@ Route::post('/register', [VisitorController::class, 'storeVisitor'])->name('visi
 Route::get('/visitor/reissue', [VisitorController::class, 'showReissueForm'])->name('visitor.reissue');
 Route::post('/visitor/reissue', [VisitorController::class, 'processReissue'])->name('visitor.reissue.submit');
 
-// Authentication Screen Views and Form Processors
+// Permanent public URL for the visitor's live pass hub profile
+Route::get('/pass/{token}', [VisitorController::class, 'showLivePass'])->name('visitor.live.pass');
+
+// Authentication Screen Views and Form Processors (✅ FIX: Matches admin.login.submit and admin.logout)
 Route::get('/admin/login', [VisitorController::class, 'showLoginForm'])->name('login');
 Route::post('/admin/login', [VisitorController::class, 'processLogin'])->name('admin.login.submit');
 Route::post('/admin/logout', [VisitorController::class, 'processLogout'])->name('admin.logout');
@@ -33,7 +36,7 @@ Route::post('/admin/logout', [VisitorController::class, 'processLogout'])->name(
 // -----------------------------------------------------------------
 Route::middleware(['auth'])->group(function () {
     
-    // 🆕 SECURED: Route that accepts a token and validates it for scanning terminal results
+    // SECURED: Route that accepts a token and validates it for scanning terminal results
     Route::get('/verify-scan/{token}/{location?}', [VisitorController::class, 'verifyScan'])->name('visitor.verify');
 
     // The Administration Dashboard Overview Portal URL
@@ -54,3 +57,6 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/admin/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     
 });
+
+// Async lookup route for the guard dashboard terminal panel
+Route::get('/visitor/lookup', [VisitorController::class, 'expressLookup'])->name('visitor.lookup');

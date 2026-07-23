@@ -234,16 +234,21 @@
         <p class="subtitle">Upload a pass photo file or use manual entry fallback</p>
     </div>
 
-    <div class="form-group">
+           <div class="form-group">
         <label for="stationLocation">Select Scanning Station Location</label>
         <select id="stationLocation">
-            <option value="Main Gate">Main Gate (Entry/Exit)</option>
+            <!-- ✅ FIXED: The values now explicitly match what your controller expects -->
+            <option value="Main Gate - Entrance">Main Gate (Entrance Gate)</option>
+            <option value="Main Gate - Exit">Main Gate (Exit Gate)</option>
+            
             <option value="Registrar Office">Registrar's Office</option>
             <option value="Dean Office">Dean's Office</option>
             <option value="Accounting Department">Accounting Department</option>
             <option value="University Library">University Library</option>
         </select>
     </div>
+
+
 
     <input type="file" id="qrFileInput" accept="image/*" style="display: none;">
 
@@ -293,7 +298,7 @@
 </div>
 
 
-        <script>
+    <script>
     let localStreamTrack = null;
     let frameDetectionInterval = null;
 

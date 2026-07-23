@@ -6,10 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class Movement extends Model
 {
-    protected $fillable = ['visitor_id', 'location_name'];
-
-    public function visitor()
-    {
-        return $this->belongsTo(Visitor::class);
-    }
+    // 🔑 THIS ARRAY SEALS THE HOLE. It tells Laravel it is allowed to write data to these columns!
+    protected $fillable = [
+        'visitor_id',
+        'action_type',    // 🔴 ADD THIS EXACT LINE IF IT IS MISSING OR TYPO'D!
+        'location_name',
+        'remarks'
+    ];
 }

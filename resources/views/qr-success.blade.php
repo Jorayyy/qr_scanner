@@ -131,11 +131,11 @@
 </head>
 <body>
 
-<div class="card">
+    <div class="card">
         <!-- 🆕 LIVE STATUS BADGE TRACKING BANNER -->
-        @if($visitor->status === 'pending')
+        @if(($visitor->status ?? '') === 'pending')
             <div class="status-container status-pending">🕒 Pass Status: Pending Entry</div>
-        @elseif($visitor->status === 'checked_in')
+        @elseif(($visitor->status ?? '') === 'checked_in')
             <div class="status-container status-inside">🟢 Pass Status: Inside Campus</div>
         @else
             <div class="status-container status-left">⚪ Pass Status: Left Campus</div>
@@ -162,18 +162,42 @@
 
         <!-- Technical Parameters Summary Grid -->
         <div class="meta-data-list">
+            
+            <!-- 👤 VISITOR NAME ROW CONTAINER -->
             <div class="meta-data-row">
                 <span class="meta-label">Visitor Name</span>
-                <span class="meta-value">{{ $visitor->full_name }}</span>
+                <span class="meta-value" style="font-weight: 700;">
+                    {{-- Safely stitches split columns together on the fly --}}
+                    {{ trim(($visitor->first_name ?? '') . ' ' . ($visitor->middle_name ?? '') . ' ' . ($visitor->last_name ?? '')) ?: 'N/A' }}
+                </span>
             </div>
-             <div class="meta-data-row">
+
+            <!-- 🏢 VISITING TARGET TWIN NULLABLE LOGIC ROW CONTAINER -->
+            <div class="meta-data-row">
                 <span class="meta-label">Visiting Target</span>
-                <span class="meta-value">{{ $visitor->person_to_visit }}</span>
+                <span class="meta-value" style="font-weight: 700;">
+                    @php
+                        $targetOffice = trim($visitor->office_to_visit ?? '');
+                        $targetPerson = trim($visitor->person_to_visit ?? '');
+                    @endphp
+
+                    @if(!empty($targetOffice) && !empty($targetPerson))
+                        {{ $targetOffice }} <span style="opacity: 0.7; font-weight: 500;">({{ $targetPerson }})</span>
+                    @elseif(!empty($targetOffice))
+                        {{ $targetOffice }}
+                    @elseif(!empty($targetPerson))
+                        {{ $targetPerson }}
+                    @else
+                        <span style="color: #64748b; font-style: italic; font-weight: 500;">General Premises (N/A)</span>
+                    @endif
+                </span>
             </div>
+
             <div class="meta-data-row">
                 <span class="meta-label">Purpose of Entry</span>
-                <span class="meta-value">{{ $visitor->purpose_of_visit }}</span>
+                <span class="meta-value">{{ $visitor->purpose_of_visit ?? 'N/A' }}</span>
             </div>
+            
             <div class="meta-data-row">
                 <span class="meta-label">Current Tracking</span>
                 <span class="meta-value" style="color: #38bdf8; font-weight: 700;">{{ $visitor->current_location ?? 'Main Gate' }}</span>
@@ -183,27 +207,27 @@
             <div class="meta-data-row">
                 <span class="meta-label">Vehicle Type</span>
                 <span class="meta-value">
-                    @switch($visitor->vehicle_type)
-                        @case('none') 🚶 Pedestrian @break
+                    @switch(strtolower(trim($visitor->vehicle_type ?? 'pedestrian')))
+                        @case('pedestrian') 🚶 Pedestrian @break
                         @case('motorcycle') 🏍️ Motorcycle @break
                         @case('car') 🚗 Car / Sedan @break
-                        @default {{ ucfirst($visitor->vehicle_type) }}
+                        @default {{ ucfirst($visitor->vehicle_type ?? 'Pedestrian') }}
                     @endswitch
                 </span>
             </div>
 
             <!-- 🆕 NEW DYNAMIC VEHICLE SPECIFICATIONS EXTENSION DRAWER VIEW -->
-            @if($visitor->vehicle_type !== 'none' && $visitor->vehicle_brand)
+            @if(!in_array(strtolower(trim($visitor->vehicle_type ?? 'pedestrian')), ['pedestrian', 'none', '']) && ($visitor->vehicle_brand ?? false))
                 <div class="vehicle-info-block" style="margin-top: 12px; font-size: 13px;">
                     <span class="vehicle-title">Registered Vehicle Metrics</span>
                     <div class="vehicle-grid">
                         <div>
                             <div style="color:#94a3b8; font-size:10px; text-transform:uppercase;">Brand / Model</div>
-                            <div style="font-weight:600; color:#ffffff;">{{ $visitor->vehicle_brand }} ({{ $visitor->vehicle_model }})</div>
+                            <div style="font-weight:600; color:#ffffff;">{{ $visitor->vehicle_brand }} ({{ $visitor->vehicle_model ?? 'N/A' }})</div>
                         </div>
                         <div>
                             <div style="color:#94a3b8; font-size:10px; text-transform:uppercase;">Plate & Color</div>
-                            <div style="font-weight:600; color:#ffffff; letter-spacing:0.5px;">{{ strtoupper($visitor->vehicle_plate) }} • {{ ucfirst($visitor->vehicle_color) }}</div>
+                            <div style="font-weight:600; color:#ffffff; letter-spacing:0.5px;">{{ strtoupper($visitor->vehicle_plate ?? 'N/A') }} • {{ ucfirst($visitor->vehicle_color ?? 'N/A') }}</div>
                         </div>
                     </div>
                 </div>
@@ -211,7 +235,7 @@
             
             <div class="token-display-field" style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px; border-radius: 8px; margin-top: 12px; text-align: center;">
                 <span class="meta-label" style="display:block; margin-bottom:4px; font-size:10px; text-align:center;">Unique Pass Token ID Code</span>
-                <div class="token-string-text" id="passTokenString" style="font-family: monospace; font-size: 11px; color: #94a3b8; word-break: break-all; user-select: all;">{{ $visitor->qr_code_token }}</div>
+                <div class="token-string-text" id="passTokenString" style="font-family: monospace; font-size: 11px; color: #94a3b8; word-break: break-all; user-select: all;">{{ $visitor->qr_code_token ?? 'N/A' }}</div>
             </div>
         </div>
 
@@ -230,6 +254,7 @@
             </a>
         </div>
     </div>
+
 
     <!-- Client-Side Vector To PNG Image Packaging Downloader Script -->
     <script>

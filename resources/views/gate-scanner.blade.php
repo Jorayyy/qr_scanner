@@ -391,7 +391,7 @@
         resetUI();
     }
 
-    function resetUI() {
+        function resetUI() {
         if (cameraViewportWrap) cameraViewportWrap.style.display = 'none';
         if (originalDropzone) originalDropzone.style.display = 'block';
         if (cameraBtnWrap) cameraBtnWrap.style.display = 'block';
@@ -476,6 +476,9 @@
         resultDisplay.innerText = "Error: System failed to read QR matrix layers. Try a clearer screenshot.";
     }
 
+    // =================================================================
+    // 🚪 STICKY GATE TERMINAL PARAMETERS HOOKS ENGINE
+    // =================================================================
     function routeToVerify(token, location) {
         window.location.href = "/verify-scan/" + token + "/" + encodeURIComponent(location);
     }
@@ -486,7 +489,26 @@
         if (!rawToken) return alert("Input a valid token first!");
         routeToVerify(rawToken, selectedLocation);
     }
+
+    // 🔒 CORE STATE PERSISTENCE LOOPS: Bind the active view state fields automatically
+    document.addEventListener("DOMContentLoaded", function() {
+        const locationDropdown = document.getElementById("stationLocation");
+        
+        if (locationDropdown) {
+            // Retrieve and recover cached dropdown options from localized storage memory rows
+            const persistedGateSetting = localStorage.getItem("evsu_active_terminal_gate");
+            if (persistedGateSetting) {
+                locationDropdown.value = persistedGateSetting;
+            }
+
+            // Fire event hook intercepts to sync adjustments back to client storage registries
+            locationDropdown.addEventListener("change", function(event) {
+                localStorage.setItem("evsu_active_terminal_gate", event.target.value);
+            });
+        }
+    });
     </script>
+
 
 </body>
 </html>

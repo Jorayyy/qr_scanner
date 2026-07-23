@@ -276,9 +276,12 @@ class VisitorController extends Controller
         return view('qr-success', compact('visitor', 'qrCode'));
     }
 
-        // Handle Campus Scans and Multi-Office Department Tracking (Adviser Scenarios 1, 2, 3)
-    public function verifyScan(Request $request, $token, $location = 'Main Gate - Entrance')
+   public function verifyScan(Request $request, $token, $location = 'Main Gate - Entrance')
 {
+    // 🧼 1. UN-ESCAPE DOUBLE ENCODING ARTIFACTS SCRIPT DECODER
+    // Converts raw URL characters (like %20 or %2520) back into pure plain text spaces safely!
+    $location = urldecode(urldecode($location));
+
     // Sanitize incoming tokens from accidental spaces or window duplication formats
     $cleanToken = trim(preg_replace('/\s*\(\d+\)\s*$/', '', $token));
     $visitor = Visitor::where('qr_code_token', $cleanToken)->first();
@@ -290,85 +293,70 @@ class VisitorController extends Controller
     // Combined string variable to prevent Eloquent writing full_name back to SQLite tables
     $visitorFullName = trim($visitor->first_name . ' ' . $visitor->middle_name . ' ' . $visitor->last_name);
 
-               // -----------------------------------------------------------------
-        // 🚪 A. MASTER MAIN GATE ENGINES (Triggers for ANY location string containing "Main Gate")
-        // -----------------------------------------------------------------
-        if (str_contains(strtolower($location), 'main gate')) {
+    // -----------------------------------------------------------------
+    // 🚪 A. MASTER MAIN GATE ENGINES (Triggers for ANY location string containing "Main Gate")
+    // -----------------------------------------------------------------
+    if (str_contains(strtolower($location), 'main gate')) {
+        
+        $isExplicitExit = (str_contains(strtolower($location), 'exit'));
+        $isExplicitEntrance = (str_contains(strtolower($location), 'entrance'));
+        
+        // Normalize database status string to lowercase for safe comparisons
+        $currentStatus = strtolower(trim($visitor->status));
+
+        // 🚪 ENGINE DIRECTION A: PROCESS CHECK-OUT
+        if ($isExplicitExit || ($currentStatus === 'checked_in' && !$isExplicitEntrance)) {
             
-            $isExplicitExit = (str_contains(strtolower($location), 'exit'));
-            $isExplicitEntrance = (str_contains(strtolower($location), 'entrance'));
-            
-            // Normalize database status string to lowercase for safe comparisons
-            $currentStatus = strtolower(trim($visitor->status));
-
-            // 🚪 ENGINE DIRECTION A: PROCESS CHECK-OUT
-            if ($isExplicitExit || ($currentStatus === 'checked_in' && !$isExplicitEntrance)) {
-                
-                // ✅ FOOLPROOF REFRESH BLOCK: If already checked out, just show the view. Do not log again!
-                if ($currentStatus === 'checked_out') {
-                    return view('scan-result', [
-                        'success' => true, 
-                        'title' => 'Check-Out Approved', 
-                        'message' => 'Visitor safely left the university premises.', 
-                        'visitor' => $visitor,
-                        'full_name' => $visitorFullName
-                    ]);
-                }
-
-                // First time processing the exit:
-                $visitor->update([
-                    'status' => 'checked_out',
-                    'current_location' => 'Left Campus',
-                    'checked_out_at' => now(),
-                ]);
-                
-                // ✅ FIXED: Using pure values instead of hardcoded strings matching key names
-                $visitor->movements()->create([
-                    'action_type' => 'CHECKED_OUT', 
-                    'location_name' => 'Main Gate',
-                    'remarks' => 'Visitor successfully cleared campus exit.'
-                ]);
-
+            // 🛑 CRITICAL SECURED LAYER: Throw error if they try scanning an already departed pass!
+            if ($currentStatus === 'checked_out') {
                 return view('scan-result', [
-                    'success' => true, 
-                    'title' => 'Check-Out Approved', 
-                    'message' => 'Visitor safely left the university premises.', 
+                    'success' => false, 
+                    'title' => 'Pass Already Cleared', 
+                    'message' => 'This visitor has already checked out of the university premises.', 
                     'visitor' => $visitor,
                     'full_name' => $visitorFullName
                 ]);
             }
 
-            // 🚪 ENGINE DIRECTION B: PROCESS CHECK-IN
-            else if (!$isExplicitExit) {
-                
-                // ✅ FOOLPROOF REFRESH BLOCK: If already checked in, just show the view. Do not log again!
-                if ($currentStatus === 'checked_in') {
-                    $primaryTarget = $visitor->office_to_visit ?: ($visitor->person_to_visit ?: 'General Premises');
-                    return view('scan-result', [
-                        'success' => true, 
-                        'title' => 'Access Granted', 
-                        'message' => 'Welcome to campus! Initial target: ' . $primaryTarget, 
-                        'visitor' => $visitor,
-                        'full_name' => $visitorFullName
-                    ]);
-                }
+            // First time processing the exit:
+            $visitor->update([
+                'status' => 'checked_out',
+                'current_location' => 'Left Campus',
+                'checked_out_at' => now(),
+            ]);
+            
+            $visitor->movements()->create([
+                'action_type' => 'CHECKED_OUT', 
+                'location_name' => 'Main Gate',
+                'remarks' => 'Visitor successfully cleared campus exit.'
+            ]);
 
-                // First time processing the entry:
-                $visitor->update([
-                    'status' => 'checked_in',
-                    'current_location' => 'Main Gate',
-                    'checked_in_at' => $visitor->checked_in_at ?: now(),
+            return view('scan-result', [
+                'success' => true, 
+                'title' => 'Check-Out Approved', 
+                'message' => 'Visitor safely left the university premises.', 
+                'visitor' => $visitor,
+                'full_name' => $visitorFullName
+            ]);
+        }
+
+        // 🚪 ENGINE DIRECTION B: PROCESS CHECK-IN
+        else if (!$isExplicitExit) {
+            
+            // 🛑 CRITICAL SECURED LAYER: Block access if pass was burned by an exit event earlier today
+            if ($currentStatus === 'checked_out') {
+                return view('scan-result', [
+                    'success' => false, 
+                    'title' => 'Pass Expired', 
+                    'message' => 'This QR pass has already been used for an exit and is now invalid.', 
+                    'visitor' => $visitor,
+                    'full_name' => $visitorFullName
                 ]);
-                
+            }
+
+            // If already checked in, just show the view (Refresh handle)
+            if ($currentStatus === 'checked_in') {
                 $primaryTarget = $visitor->office_to_visit ?: ($visitor->person_to_visit ?: 'General Premises');
-
-                // ✅ FIXED: Using pure values instead of hardcoded strings matching key names
-                $visitor->movements()->create([
-                    'action_type' => 'CHECKED_IN', 
-                    'location_name' => 'Main Gate',
-                    'remarks' => 'Access Granted. Initial target track: ' . $primaryTarget
-                ]);
-
                 return view('scan-result', [
                     'success' => true, 
                     'title' => 'Access Granted', 
@@ -377,7 +365,34 @@ class VisitorController extends Controller
                     'full_name' => $visitorFullName
                 ]);
             }
+
+            // First time processing the entry:
+            $visitor->update([
+                'status' => 'checked_in',
+                'current_location' => 'Main Gate',
+                'checked_in_at' => $visitor->checked_in_at ?: now(),
+            ]);
+            
+            $primaryTarget = $visitor->office_to_visit ?: ($visitor->person_to_visit ?: 'General Premises');
+
+            $visitor->movements()->create([
+                'action_type' => 'CHECKED_IN', 
+                'location_name' => 'Main Gate',
+                'remarks' => 'Access Granted. Initial target track: ' . $primaryTarget
+            ]);
+
+            return view('scan-result', [
+                'success' => true, 
+                'title' => 'Access Granted', 
+                'message' => 'Welcome to campus! Initial target: ' . $primaryTarget, 
+                'visitor' => $visitor,
+                'full_name' => $visitorFullName
+            ]);
         }
+    }
+
+    // ... (Your Inter-Office hops logic continues cleanly right below)
+
 
 
     // -----------------------------------------------------------------

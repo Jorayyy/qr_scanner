@@ -127,15 +127,13 @@ class VisitorController extends Controller
         $totalCheckedOut = Visitor::where('status', 'checked_out')->count();
         $totalPending     = Visitor::where('status', 'pending')->count();
 
-                // 🆕 NEW ANALYTICS: Count vehicle metrics currently occupying campus space (Case-Insensitive)
-        $vehiclesInside  = Visitor::where('status', 'checked_in')
-            ->where(function($query) {
-                $query->whereRaw('LOWER(vehicle_type) LIKE ?', ['%motorcycle%'])
-                      ->orWhereRaw('LOWER(vehicle_type) LIKE ?', ['%car%'])
-                      ->orWhereRaw('LOWER(vehicle_type) LIKE ?', ['%vehicle%'])
-                      ->orWhereRaw('LOWER(vehicle_type) LIKE ?', ['%suv%']);
-            })
-            ->count();
+        // 🆕 NEW ANALYTICS: Count vehicle metrics currently occupying campus space
+$vehiclesInside = Visitor::where('status', 'checked_in')
+    ->whereNotNull('vehicle_type') // Makes sure the field isn't empty
+    ->where('vehicle_type', '!=', '') // Makes sure it isn't a blank string
+    ->whereRaw('LOWER(vehicle_type) NOT LIKE ?', ['%pedestrian%']) // 🚫 Do NOT count pedestrians!
+    ->count();
+
 
 
         $dailyLogs = Visitor::selectRaw('DATE(created_at) as date, COUNT(*) as count')

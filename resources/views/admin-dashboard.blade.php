@@ -296,12 +296,16 @@
                 </svg>Print Logs Report
             </button>
 
-            <a href="{{ route('visitor.register') }}" class="primary-btn">
-                <svg xmlns="http://w3.org" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 6px; display: inline-block; vertical-align: middle;">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>Registration Portal
-            </a>
+            @if(auth()->check() && auth()->user()->role !== 'guard')
+    <a href="{{ route('visitor.register') }}" class="primary-btn">
+        <svg xmlns="http://w3.org" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide lucide-plus">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+        Registration Portal
+    </a>
+@endif
+
 
             <form action="{{ route('admin.logout') }}" method="POST" class="logout-form-wrapper">
                 @csrf

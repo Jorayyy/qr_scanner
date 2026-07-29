@@ -2,7 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\VisitorController;
-use App\Http\Controllers\UserController; 
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\GateScannerController; 
 
 // -----------------------------------------------------------------
 // PUBLIC GUEST ROUTES (No Authentication Needed)
@@ -60,3 +61,10 @@ Route::middleware(['auth'])->group(function () {
 
 // Async lookup route for the guard dashboard terminal panel
 Route::get('/visitor/lookup', [VisitorController::class, 'expressLookup'])->name('visitor.lookup');
+
+
+
+// Universal Terminal Sync Route Tracking Pipeline
+Route::get('/verify-scan/{token}/{location}', [GateScannerController::class, 'processPassTransaction'])
+     ->name('gate.verify');
+

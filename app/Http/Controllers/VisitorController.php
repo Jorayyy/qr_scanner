@@ -304,13 +304,21 @@ $vehiclesInside = Visitor::where('status', 'checked_in')
 
         // 🚪 ENGINE DIRECTION A: PROCESS CHECK-OUT
         if ($isExplicitExit || ($currentStatus === 'checked_in' && !$isExplicitEntrance)) {
-            
-            // 🛑 CRITICAL SECURED LAYER: Throw error if they try scanning an already departed pass!
             if ($currentStatus === 'checked_out') {
                 return view('scan-result', [
-                    'success' => false, 
-                    'title' => 'Pass Already Cleared', 
-                    'message' => 'This visitor has already checked out of the university premises.', 
+                    'success' => false,
+                    'title' => 'Pass Already Cleared',
+                    'message' => 'This visitor has already checked out of the university premises.',
+                    'visitor' => $visitor,
+                    'full_name' => $visitorFullName
+                ]);
+            }
+
+            if ($currentStatus !== 'checked_in') {
+                return view('scan-result', [
+                    'success' => false,
+                    'title' => 'Check-In Required',
+                    'message' => 'This visitor must check in before they can scan out at the exit gate.',
                     'visitor' => $visitor,
                     'full_name' => $visitorFullName
                 ]);

@@ -193,10 +193,6 @@
             background: #1e293b; 
         }
     </style>
-        <!-- PLACE THIS EXACTLY ABOVE YOUR CLOSING </head> TAG -->
-    <script src="https://unpkg.com" type="text/javascript"></script>
-</head>
-
 </head>
 <body>
    <!-- REPLACE YOUR EXISTING <nav> BLOCK IN ALL THREE VIEWS WITH THIS SECURE VERSION -->
@@ -237,10 +233,9 @@
 
            <div class="form-group">
         <label for="stationLocation">Select Scanning Station Location</label>
-        <select id="stationLocation">
-            <!-- ✅ FIXED: The values now explicitly match what your controller expects -->
-            <option value="Main Gate - Entrance">Main Gate (Entrance Gate)</option>
-            <option value="Main Gate - Exit">Main Gate (Exit Gate)</option>
+        <select id="stationLocation" class="form-select">
+    <option value="Main Gate (Entrance Gate)">Main Gate (Entrance Gate)</option>
+    <option value="Main Gate (Exit Gate)">Main Gate (Exit Gate)</option>
             
             <option value="Registrar Office">Registrar's Office</option>
             <option value="Dean Office">Dean's Office</option>
@@ -253,24 +248,29 @@
 
     <input type="file" id="qrFileInput" accept="image/*" style="display: none;">
 
-    <!-- PLACE THIS INSTEAD OF YOUR OLD SCANNER CONTAINER CONTAINER -->
-<div id="camera-viewport-wrap" style="display: none; width: 100%; max-width: 400px; margin: 0 auto 20px; background: #000; border-radius: 12px; overflow: hidden; border: 1px solid #cbd5e1; position: relative;">
-    <!-- NATIVE ELEMENT: Video stream maps straight to this element -->
-    <video id="native-video-preview" style="width: 100%; height: auto; background: #000; border-radius: 8px;" playsinline></video>
-
+    <!-- GCash Style Smart Instant Viewfinder Layout Container -->
+<div id="camera-viewport-wrap" style="position: relative; width: 100%; max-width: 500px; margin: 0 auto; display: none;">
+    <!-- Live Camera Feed Stream -->
+    <video id="native-video-preview" style="width: 100%; height: auto; border-radius: 8px;" playsinline></video>
     
-    <button type="button" id="close-camera-btn" style="width: 100%; padding: 12px; background: #ef4444; color: white; border: none; font-weight: 600; cursor: pointer; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
+    <!-- Transparent Darkened Alignment Mask Layout Overlay -->
+    <div style="position: absolute; top: 0; left: 0; right: 0; bottom: 0; border: 40px solid rgba(15, 23, 42, 0.65); border-radius: 8px; pointer-events: none;">
+        <!-- Smart Centered Targeting Guide Box -->
+        <div id="scan-target-box" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 220px; height: 220px; border: 3px solid #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.5); display: flex; align-items: center; justify-content: center;">
+            <!-- Animated High-Speed Laser Line Element -->
+            <div id="scan-laser-line" style="width: 100%; height: 2px; background-color: #10b981; box-shadow: 0 0 8px #10b981; position: absolute; animation: gcashLaserMove 2s linear infinite;"></div>
+            <span id="scan-status-badge" style="color: #ffffff; font-size: 11px; font-weight: bold; background: #10b981; padding: 4px 10px; border-radius: 4px; position: absolute; bottom: 10px; text-transform: uppercase;">SCANNING ACTIVE</span>
+        </div>
+    </div>
+
+    <button type="button" id="close-camera-btn" style="width: 100%; margin-top: 12px; padding: 12px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
         ✕ Close Live Scanner
     </button>
 </div>
 
-
-    <div id="camera-viewport-wrap" style="display: none; width: 100%; background: #000; border-radius: 12px; overflow: hidden; margin-bottom: 20px; border: 1px solid #cbd5e1;">
-    <div id="qr-reader" style="width: 100%;"></div>
-    <button type="button" id="close-camera-btn" style="width: 100%; padding: 12px; background: #ef4444; color: white; border: none; font-weight: 600; cursor: pointer; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">
-        ✕ Close Live Scanner
-    </button>
-</div>
+<style>
+    @keyframes gcashLaserMove { 0% { top: 0%; } 50% { top: 100%; } 100% { top: 0%; } }
+</style>
 
     <!-- Your File Upload Box Area -->
     <div id="original-dropzone" class="upload-zone" onclick="document.getElementById('qrFileInput').click()">
@@ -281,9 +281,12 @@
     <!-- PLACE THIS RIGHT BELOW THE CLOSING </div> OF YOUR UPLOAD ZONE -->
 <div id="camera-btn-wrap" class="form-group text-center" style="margin-top: 16px; margin-bottom: 0;">
     <button type="button" id="open-camera-btn" style="padding: 12px 20px; background-color: #0f172a; color: white; border: none; border-radius: 8px; cursor: pointer; font-weight: 600; width: 100%; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px; transition: background 0.15s ease;">
-        📷 Open Phone Camera Scanner
+        📷 Open Camera Scanner
     </button>
 </div>
+
+
+
 
 
     <div id="result-box">Terminal standby engine active.</div>
@@ -311,299 +314,7 @@
 @endif
 
 
-<script src="https://cloudflare.com"></script>
-
-
-
-<script>
-        let localStreamTrack = null;
-    let frameDetectionInterval = null;
-
-    // Grab UI element references
-    const fileSelector = document.getElementById('qrFileInput');
-    const resultDisplay = document.getElementById('result-box');
-    const openCameraBtn = document.getElementById('open-camera-btn');
-    const closeCameraBtn = document.getElementById('close-camera-btn');
-    const cameraViewportWrap = document.getElementById('camera-viewport-wrap');
-    const originalDropzone = document.getElementById('original-dropzone');
-    const cameraBtnWrap = document.getElementById('camera-btn-wrap');
-    const tokenField = document.getElementById('tokenField');
-    const videoPreviewElement = document.getElementById('native-video-preview');
-
-    // Create a local calculation matrix layer completely offline
-    const fallbackCanvas = document.createElement('canvas');
-    const canvasContext2D = fallbackCanvas.getContext('2d', { willReadFrequently: true });
-
-    if (openCameraBtn) {
-        openCameraBtn.addEventListener('click', () => {
-            if (originalDropzone) originalDropzone.style.display = 'none';
-            if (cameraBtnWrap) cameraBtnWrap.style.display = 'none';
-            if (cameraViewportWrap) cameraViewportWrap.style.display = 'block';
-
-            if (resultDisplay) {
-                resultDisplay.style.color = "#475569";
-                resultDisplay.innerText = "Requesting device camera interface access...";
-            }
-
-            // Universal constraints fallback: back camera on mobile layout screens, standard video feed on laptop/desktops
-            const standardConstraints = window.matchMedia("(max-width: 768px)").matches 
-                ? { video: { facingMode: { ideal: "environment" } } } 
-                : { video: true };
-
-            navigator.mediaDevices.getUserMedia(standardConstraints)
-            .then((stream) => {
-                localStreamTrack = stream;
-                videoPreviewElement.srcObject = stream;
-                videoPreviewElement.setAttribute("playsinline", true); 
-                videoPreviewElement.play();
-                
-                if (resultDisplay) resultDisplay.innerText = "Live hardware stream active. Ready to scan QR pass.";
-
-                // Native Hardware Processing Engine Configuration Check
-                let hardwareDetectorInstance = null;
-                if ('BarcodeDetector' in window) {
-                    hardwareDetectorInstance = new BarcodeDetector({ formats: ['qr_code'] });
-                }
-
-                // High-performance Canvas Processing Loop (Runs locally at 4 frames per second)
-                frameDetectionInterval = setInterval(() => {
-                    if (videoPreviewElement.readyState === videoPreviewElement.HAVE_ENOUGH_DATA) {
-                        
-                        // IF MOBILE SUPPORTS THE NATIVE BARCODE DETECTOR
-                        if (hardwareDetectorInstance) {
-                            hardwareDetectorInstance.detect(videoPreviewElement)
-                            .then((barcodes) => {
-                                if (barcodes && barcodes.length > 0) {
-                                    handleOfflineScanSuccess(barcodes[0].rawValue);
-                                }
-                            })
-                            .catch((e) => console.debug("Skipping native tracking framework sweep: ", e));
-                        
-                        // UNIVERSAL DESKTOP LAPTOP SCANNING FALLBACK
-                        } else {
-                            fallbackCanvas.width = videoPreviewElement.videoWidth;
-                            fallbackCanvas.height = videoPreviewElement.videoHeight;
-                            canvasContext2D.drawImage(videoPreviewElement, 0, 0, fallbackCanvas.width, fallbackCanvas.height);
-                            
-                            // Native canvas scanning routine stub—reads frame structures locally
-                            // Allows cameras on any laptop to wake up and process input text values cleanly
-                        }
-                    }
-                }, 250);
-            })
-            .catch((err) => {
-                console.error("Camera hardware setup failed completely:", err);
-                alert("Hardware Blocked: Ensure webcam is connected and site is running on localhost/HTTPS origins.");
-                stopOfflineScanner();
-            });
-        });
-    }
-
-    function handleOfflineScanSuccess(rawToken) {
-        const cleanToken = rawToken.trim();
-        const selectedLocation = document.getElementById("stationLocation").value;
-
-        if (tokenField) tokenField.value = cleanToken;
-
-        if (resultDisplay) {
-            resultDisplay.style.color = "#10b981";
-            resultDisplay.innerText = "Pass token matched successfully! Routing...";
-        }
-
-        stopOfflineScanner();
-        
-        if (typeof routeToVerify === 'function') {
-            routeToVerify(cleanToken, selectedLocation);
-        }
-    }
-
-    function stopOfflineScanner() {
-        if (frameDetectionInterval) {
-            clearInterval(frameDetectionInterval);
-            frameDetectionInterval = null;
-        }
-        if (localStreamTrack) {
-            localStreamTrack.getTracks().forEach(track => track.stop());
-            localStreamTrack = null;
-        }
-        if (videoPreviewElement) {
-            videoPreviewElement.srcObject = null;
-        }
-        resetUI();
-    }
-
-    function resetUI() {
-        if (cameraViewportWrap) cameraViewportWrap.style.display = 'none';
-        if (originalDropzone) originalDropzone.style.display = 'block';
-        if (cameraBtnWrap) cameraBtnWrap.style.display = 'block';
-        if (resultDisplay) {
-            resultDisplay.style.color = "#475569";
-            resultDisplay.innerText = "Terminal standby engine active.";
-        }
-    }
-
-    if (closeCameraBtn) {
-        closeCameraBtn.addEventListener('click', stopOfflineScanner);
-    }
-
-
-
-
-    function executeSuccessfulScan(rawToken) {
-        const cleanToken = rawToken.trim();
-        const selectedLocation = document.getElementById("stationLocation").value;
-
-        if (tokenField) tokenField.value = cleanToken;
-
-        resultDisplay.style.color = "#10b981";
-        resultDisplay.innerText = "Pass token matched successfully! Routing...";
-
-        stopNativeScanner();
-        
-        if (typeof routeToVerify === 'function') {
-            routeToVerify(cleanToken, selectedLocation);
-        }
-    }
-
-    function stopNativeScanner() {
-        if (frameDetectionInterval) {
-            clearInterval(frameDetectionInterval);
-            frameDetectionInterval = null;
-        }
-
-        if (localStreamTrack) {
-            localStreamTrack.getTracks().forEach(track => track.stop());
-            localStreamTrack = null;
-        }
-
-        if (videoPreviewElement) {
-            videoPreviewElement.srcObject = null;
-        }
-
-        resetUI();
-    }
-
-    function resetUI() {
-        if (cameraViewportWrap) cameraViewportWrap.style.display = 'none';
-        if (originalDropzone) originalDropzone.style.display = 'block';
-        if (cameraBtnWrap) cameraBtnWrap.style.display = 'block';
-        
-        resultDisplay.style.color = "#475569";
-        resultDisplay.innerText = "Terminal standby engine active.";
-    }
-
-    if (closeCameraBtn) {
-        closeCameraBtn.addEventListener('click', stopNativeScanner);
-    }
-
-
-
-    // =================================================================
-    // PRE-EXISTING FILE SELECTOR IMAGE PROCESSOR UTILITIES
-    // =================================================================
-    if (fileSelector) {
-        fileSelector.addEventListener('change', e => {
-            if (!e.target.files || e.target.files.length === 0) return;
-            
-            const file = e.target.files[0];
-            resultDisplay.style.color = "#cbd5e1";
-            resultDisplay.innerText = "Analyzing file grid matrix layers...";
-
-            const selectedLocation = document.getElementById("stationLocation").value;
-            const filename = file.name;
-
-            if (filename.startsWith("PASS_")) {
-                const extractedToken = filename.replace("PASS_", "").split('.')[0];
-                routeToVerify(extractedToken, selectedLocation);
-                return;
-            }
-
-            const img = new Image();
-            img.src = URL.createObjectURL(file);
-            
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                ctx.drawImage(img, 0, 0, img.width, img.height);
-                
-                URL.revokeObjectURL(img.src);
-                
-                if ('BarcodeDetector' in window) {
-                    const detector = new BarcodeDetector({ formats: ['qr_code'] });
-                    detector.detect(canvas)
-                        .then(barcodes => {
-                            if (barcodes.length > 0) {
-                                resultDisplay.style.color = "#10b981";
-                                resultDisplay.innerText = "Pass token matched via matrix! Routing...";
-                                routeToVerify(barcodes[0].rawValue.trim(), selectedLocation);
-                            } else {
-                                const genericName = filename.split('.')[0];
-                                if (genericName.length > 20) {
-                                    routeToVerify(genericName, selectedLocation);
-                                } else {
-                                    throwError();
-                                }
-                            }
-                        })
-                        .catch(() => throwError());
-                } else {
-                    const genericName = filename.split('.')[0];
-                    if (genericName.length > 20) {
-                        routeToVerify(genericName, selectedLocation);
-                    } else {
-                        throwError();
-                    }
-                }
-            };
-
-            img.onerror = function() {
-                throwError();
-                URL.revokeObjectURL(img.src);
-            };
-        });
-    }
-
-    function throwError() {
-        resultDisplay.style.color = "#ef4444";
-        resultDisplay.innerText = "Error: System failed to read QR matrix layers. Try a clearer screenshot.";
-    }
-
-    // =================================================================
-    // 🚪 STICKY GATE TERMINAL PARAMETERS HOOKS ENGINE
-    // =================================================================
-    function routeToVerify(token, location) {
-        window.location.href = "/verify-scan/" + token + "/" + encodeURIComponent(location);
-    }
-
-    function verifyManualToken() {
-        const rawToken = document.getElementById("tokenField").value.trim();
-        const selectedLocation = document.getElementById("stationLocation").value;
-        if (!rawToken) return alert("Input a valid token first!");
-        routeToVerify(rawToken, selectedLocation);
-    }
-
-    // 🔒 CORE STATE PERSISTENCE LOOPS: Bind the active view state fields automatically
-    document.addEventListener("DOMContentLoaded", function() {
-        const locationDropdown = document.getElementById("stationLocation");
-        
-        if (locationDropdown) {
-            // Retrieve and recover cached dropdown options from localized storage memory rows
-            const persistedGateSetting = localStorage.getItem("evsu_active_terminal_gate");
-            if (persistedGateSetting) {
-                locationDropdown.value = persistedGateSetting;
-            }
-
-            // Fire event hook intercepts to sync adjustments back to client storage registries
-            locationDropdown.addEventListener("change", function(event) {
-                localStorage.setItem("evsu_active_terminal_gate", event.target.value);
-            });
-        }
-    });
-    </script>
-
-
+@vite(['resources/js/gate-scanner.js'])
 </body>
 </html>
 

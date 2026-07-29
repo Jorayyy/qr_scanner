@@ -52,7 +52,7 @@
     "src": "_instrument-sans-600-normal-DMks36a2.woff"
   },
   "resources/css/app.css": {
-    "file": "assets/app-D1bjk5xF.css",
+    "file": "assets/app-CqGmfnsv.css",
     "name": "app",
     "names": [
       "app.css"
@@ -64,6 +64,12 @@
     "file": "assets/app-BvRk9kiK.js",
     "name": "app",
     "src": "resources/js/app.js",
+    "isEntry": true
+  },
+  "resources/js/gate-scanner.js": {
+    "file": "assets/gate-scanner-D8sD8g_Z.js",
+    "name": "gate-scanner",
+    "src": "resources/js/gate-scanner.js",
     "isEntry": true
   }
 }

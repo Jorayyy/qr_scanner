@@ -67,6 +67,108 @@
             margin: 6px 0 0 0; 
             font-weight: 400;
         }
+        .header-actions {
+            display: flex;
+            justify-content: center;
+            margin-top: 18px;
+            margin-bottom: 6px;
+        }
+        .map-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 14px;
+            border-radius: 999px;
+            appearance: none;
+            cursor: pointer;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.16);
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 600;
+            transition: all 0.15s ease;
+        }
+        .map-btn:hover {
+            background: rgba(255, 255, 255, 0.16);
+            border-color: rgba(255, 255, 255, 0.28);
+            transform: translateY(-1px);
+        }
+        .map-modal {
+            position: fixed;
+            inset: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            background: rgba(2, 6, 23, 0.72);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            z-index: 50;
+        }
+        .map-modal.show {
+            display: flex;
+        }
+        .map-modal-panel {
+            width: min(960px, 100%);
+            background: rgba(15, 23, 42, 0.96);
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            border-radius: 24px;
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.45);
+            overflow: hidden;
+        }
+        .map-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 16px 18px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .map-modal-title {
+            margin: 0;
+            font-size: 15px;
+            font-weight: 700;
+            color: #ffffff;
+        }
+        .map-modal-subtitle {
+            margin: 4px 0 0;
+            font-size: 12px;
+            color: #cbd5e1;
+        }
+        .map-modal-close {
+            width: 38px;
+            height: 38px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            background: rgba(255, 255, 255, 0.06);
+            color: #ffffff;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: all 0.15s ease;
+        }
+        .map-modal-close:hover {
+            background: rgba(255, 255, 255, 0.14);
+        }
+        .map-frame-wrap {
+            aspect-ratio: 16 / 10;
+            width: 100%;
+            background: rgba(15, 23, 42, 0.7);
+        }
+        .map-frame-wrap iframe {
+            width: 100%;
+            height: 100%;
+            border: 0;
+            display: block;
+        }
+        .map-modal-footer {
+            padding: 14px 18px 18px;
+            font-size: 12px;
+            color: #94a3b8;
+        }
         .form-grid {
             display: flex;
             gap: 12px;
@@ -112,6 +214,12 @@
             color: #94a3b8;
             opacity: 0.8;
         }
+        .field-hint {
+            margin: 8px 0 0;
+            color: #94a3b8;
+            font-size: 12px;
+            line-height: 1.45;
+        }
         select {
             cursor: pointer;
             appearance: none;
@@ -152,6 +260,16 @@
             <div class="logo-circle"><span class="logo-text">{{ strtoupper(substr(env('APP_NAME', 'SU'), 0, 2)) }}</span></div>
             <h1>{{ env('APP_NAME', 'State University') }}</h1>
             <p class="subtitle">{{ env('SYSTEM_DEPARTMENT', 'Visitor Management Control') }} Gateway</p>
+            <div class="header-actions">
+                <button
+                    type="button"
+                    id="view_map_btn"
+                    class="map-btn"
+                >
+                    <svg xmlns="http://w3.org" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 1 1 16 0Z"></path><circle cx="13" cy="10" r="3"></circle></svg>
+                    View Campus Map
+                </button>
+            </div>
         </div>
 
         <form action="{{ route('visitor.store') }}" method="POST" onsubmit="this.querySelector('.submit-btn').disabled=true; this.querySelector('.submit-btn').innerText='Generating Pass...';">
@@ -186,8 +304,27 @@
             </div>
 
             <div class="form-group">
-                <label>Purpose of Visit</label>
-                <input type="text" name="purpose_of_visit" placeholder="e.g., Registrar, Submission, Meeting" value="{{ old('purpose_of_visit') }}" required autocomplete="off">
+                <label for="purpose_of_visit">Purpose of Visit</label>
+                <input type="text" id="purpose_of_visit" name="purpose_of_visit" list="campus_visit_places" placeholder="e.g., Registrar, Library, Academic Building" value="{{ old('purpose_of_visit') }}" required autocomplete="off">
+                <datalist id="campus_visit_places">
+                    <option value="Registrar">
+                    <option value="Academic Building">
+                    <option value="Science Building">
+                    <option value="Architecture Building">
+                    <option value="Technology Building">
+                    <option value="EVSU Library">
+                    <option value="Graduate School">
+                    <option value="College Building">
+                    <option value="Gabaldon Building">
+                    <option value="EVSU Landmark">
+                    <option value="EVSU Executive House">
+                    <option value="Leyte Sports Development Center">
+                    <option value="Leyte Sports Academy">
+                    <option value="City Central School">
+                    <option value="Cafeteria">
+                    <option value="Auditorium">
+                </datalist>
+                <p class="field-hint">Choose a campus destination from the list or type another purpose of visit.</p>
             </div>
 
             <!-- 🆕 NEW STRUCTURE: Person and Office to Visit side-by-side, both optional -->
@@ -263,6 +400,31 @@
         </form>
     </div>
 
+    <div id="map_modal" class="map-modal" aria-hidden="true">
+        <div class="map-modal-panel" role="dialog" aria-modal="true" aria-labelledby="map_modal_title">
+            <div class="map-modal-header">
+                <div>
+                    <h2 id="map_modal_title" class="map-modal-title">Campus Map Preview</h2>
+                    <p class="map-modal-subtitle">Eastern Visayas State University, Tacloban City, Leyte</p>
+                </div>
+                <button type="button" id="close_map_btn" class="map-modal-close" aria-label="Close map modal">
+                    <svg xmlns="http://w3.org" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="map-frame-wrap">
+                <iframe
+                    src="https://www.google.com/maps?q=Eastern+Visayas+State+University,+Tacloban+City,+Leyte&output=embed"
+                    loading="lazy"
+                    referrerpolicy="no-referrer-when-downgrade"
+                    title="Eastern Visayas State University map"
+                ></iframe>
+            </div>
+            <div class="map-modal-footer">
+                Use this map to help visitors find the campus before completing their registration.
+            </div>
+        </div>
+    </div>
+
     <script>
         // Enforce alignment consistency across the registration form
         const registrationIdInput = document.getElementById('id_number');
@@ -325,6 +487,35 @@
 
         vehicleToggle.addEventListener('change', handleVehicleToggle);
         window.addEventListener('DOMContentLoaded', handleVehicleToggle);
+
+        const mapModal = document.getElementById('map_modal');
+        const viewMapBtn = document.getElementById('view_map_btn');
+        const closeMapBtn = document.getElementById('close_map_btn');
+
+        function openMapModal() {
+            mapModal.classList.add('show');
+            mapModal.setAttribute('aria-hidden', 'false');
+            closeMapBtn.focus();
+        }
+
+        function closeMapModal() {
+            mapModal.classList.remove('show');
+            mapModal.setAttribute('aria-hidden', 'true');
+            viewMapBtn.focus();
+        }
+
+        viewMapBtn.addEventListener('click', openMapModal);
+        closeMapBtn.addEventListener('click', closeMapModal);
+        mapModal.addEventListener('click', function(event) {
+            if (event.target === mapModal) {
+                closeMapModal();
+            }
+        });
+        window.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' && mapModal.classList.contains('show')) {
+                closeMapModal();
+            }
+        });
     </script>
 
 </body>

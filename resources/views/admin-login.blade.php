@@ -36,6 +36,7 @@
         /* Premium Header Branding Styles */
         .brand-section { text-align: center; margin-bottom: 32px; }
         .brand-logo-badge { display: inline-flex; align-items: center; justify-content: center; width: 48px; height: 48px; background: #ffffff; color: #0f172a; font-size: 16px; font-weight: 700; border-radius: 12px; letter-spacing: 0.5px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3); text-transform: uppercase; }
+        .brand-logo-image { width: 100%; height: 100%; object-fit: contain; padding: 7px; box-sizing: border-box; }
         h1 { margin: 0; font-size: 22px; font-weight: 700; letter-spacing: -0.5px; color: #ffffff; text-transform: uppercase; }
         .brand-subtitle { font-size: 13px; color: #cbd5e1; margin-top: 4px; font-weight: 400; }
         
@@ -73,10 +74,34 @@
 
 
     <div class="login-card">
+        @php
+            $brandLogo = trim((string) env('APP_LOGO', ''));
+            $brandLogoUrl = null;
+            if ($brandLogo) {
+                if (preg_match('/^https?:\/\//i', $brandLogo)) {
+                    $brandLogoUrl = $brandLogo;
+                } elseif (str_starts_with($brandLogo, 'public/')) {
+                    $brandLogoUrl = asset(substr($brandLogo, 7));
+                } elseif (str_starts_with($brandLogo, '/')) {
+                    $brandLogoUrl = asset(ltrim($brandLogo, '/'));
+                } else {
+                    $brandLogoUrl = asset($brandLogo);
+                }
+            }
+            if (! $brandLogoUrl && file_exists(public_path('images/evsu-logo.png'))) {
+                $brandLogoUrl = asset('images/evsu-logo.png');
+            }
+        @endphp
         <!-- Brand Header Section -->
         <div class="brand-section">
             <div style="display: flex; justify-content: center; width: 100%; margin-bottom: 16px;">
-                <div class="brand-logo-badge">SU</div>
+                <div class="brand-logo-badge">
+                    @if ($brandLogoUrl)
+                        <img src="{{ $brandLogoUrl }}" alt="{{ env('APP_NAME', 'State University') }} logo" class="brand-logo-image">
+                    @else
+                        SU
+                    @endif
+                </div>
             </div>
             <h1>{{ env('APP_NAME', 'State University') }}</h1>
             <div class="brand-subtitle">Administrative Secure Access Panel</div>

@@ -248,6 +248,165 @@
 
 </style>
 
+<style>
+    body {
+        background:
+            radial-gradient(circle at top left, rgba(59, 130, 246, 0.14), transparent 26%),
+            radial-gradient(circle at top right, rgba(14, 165, 233, 0.12), transparent 22%),
+            linear-gradient(180deg, #f8fbff 0%, #edf2ff 100%);
+        padding: 24px;
+        min-height: 100vh;
+        color: #0f172a;
+    }
+    body::before {
+        content: '';
+        position: fixed;
+        inset: 0;
+        pointer-events: none;
+        background-image: linear-gradient(rgba(15, 23, 42, 0.02) 1px, transparent 1px), linear-gradient(90deg, rgba(15, 23, 42, 0.02) 1px, transparent 1px);
+        background-size: 42px 42px;
+        opacity: 0.5;
+    }
+    nav {
+        position: sticky;
+        top: 16px;
+        z-index: 20;
+        width: min(480px, calc(100vw - 48px)) !important;
+        margin: 0 auto 20px auto !important;
+        padding: 10px !important;
+        border-radius: 18px !important;
+        background: rgba(255, 255, 255, 0.86) !important;
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+        border: 1px solid rgba(148, 163, 184, 0.18) !important;
+        box-shadow: 0 16px 30px rgba(15, 23, 42, 0.08) !important;
+    }
+    .container {
+        max-width: 1180px;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+    }
+    .header {
+        background: rgba(255, 255, 255, 0.84);
+        border: 1px solid rgba(148, 163, 184, 0.18);
+        border-radius: 26px;
+        padding: 18px 20px;
+        box-shadow: 0 24px 50px rgba(15, 23, 42, 0.08);
+        backdrop-filter: blur(14px) saturate(140%);
+        -webkit-backdrop-filter: blur(14px) saturate(140%);
+        margin-bottom: 22px;
+        align-items: center;
+    }
+    .brand-block {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+        min-width: 0;
+    }
+    .brand-badge {
+        width: 54px;
+        height: 54px;
+        border-radius: 16px;
+        background: #ffffff;
+        border: 1px solid rgba(15, 23, 42, 0.08);
+        box-shadow: 0 10px 20px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+    .brand-logo-image {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 7px;
+        box-sizing: border-box;
+    }
+    .brand-mark {
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: 0.5px;
+        color: #0f172a;
+    }
+    .dashboard-subtitle {
+        font-size: 13px;
+        color: #64748b;
+        margin-top: 4px;
+        line-height: 1.4;
+    }
+    .btn-group {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+    .stat-card {
+        border-radius: 20px;
+        border: 1px solid rgba(148, 163, 184, 0.18) !important;
+        background: rgba(255, 255, 255, 0.92) !important;
+        box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06) !important;
+        min-height: 110px;
+    }
+    .table-card, .pagination-bar, #searchContainer {
+        border-radius: 18px !important;
+        background: rgba(255, 255, 255, 0.92) !important;
+        border-color: rgba(148, 163, 184, 0.18) !important;
+        box-shadow: 0 16px 32px rgba(15, 23, 42, 0.06) !important;
+    }
+    #searchContainer {
+        min-height: 52px;
+        padding: 12px 16px !important;
+        gap: 10px;
+        margin-bottom: 18px;
+    }
+    .table-card table { font-size: 13px; }
+    .table-card th {
+        background: linear-gradient(180deg, #f8fafc, #eef2ff) !important;
+        color: #475569 !important;
+    }
+    .table-card td { color: #334155; }
+    .primary-btn,
+    .print-btn,
+    .logout-btn {
+        height: 40px !important;
+        border-radius: 12px !important;
+    }
+    .primary-btn {
+        box-shadow: 0 10px 22px rgba(15, 23, 42, 0.16);
+    }
+    .print-btn:hover,
+    .logout-btn:hover,
+    .primary-btn:hover {
+        transform: translateY(-1px);
+    }
+    .custom-pagination-tray .page-link {
+        border-radius: 10px !important;
+    }
+    @media (max-width: 1100px) {
+        .stats-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .header { flex-direction: column; align-items: stretch; }
+        .btn-group { justify-content: flex-start; }
+    }
+    @media (max-width: 760px) {
+        body { padding: 16px; }
+        nav { width: calc(100vw - 32px) !important; top: 10px; }
+        .stats-grid { grid-template-columns: 1fr; }
+        .header { padding: 16px; }
+        h1 { font-size: 24px; }
+        .btn-group { flex-direction: column; align-items: stretch; }
+        .btn-group > * { width: 100%; }
+    }
+</style>
+
 </head>
 <body>
 
@@ -277,14 +436,40 @@
 
     <div class="container">
     <div class="header">
-        <div>
-    <!-- Reads the SYSTEM_SUBTITLE from .env, defaults back to "Campus Security Admin Log" if empty -->
-    <h1>{{ env('SYSTEM_SUBTITLE', 'Campus Security Admin Log') }}</h1>
-    
-    <div style="font-size: 13px; color: #64748b; margin-top: 4px;">
-        {{ env('APP_NAME', 'Laravel') }} {{ env('SYSTEM_DEPARTMENT', 'Visitor Management Control') }}
-    </div>
-</div>
+        <div class="brand-block">
+            @php
+                $brandLogo = trim((string) env('APP_LOGO', ''));
+                $brandLogoUrl = null;
+                if ($brandLogo) {
+                    if (preg_match('/^https?:\/\//i', $brandLogo)) {
+                        $brandLogoUrl = $brandLogo;
+                    } elseif (str_starts_with($brandLogo, 'public/')) {
+                        $brandLogoUrl = asset(substr($brandLogo, 7));
+                    } elseif (str_starts_with($brandLogo, '/')) {
+                        $brandLogoUrl = asset(ltrim($brandLogo, '/'));
+                    } else {
+                        $brandLogoUrl = asset($brandLogo);
+                    }
+                }
+                if (! $brandLogoUrl && file_exists(public_path('images/evsu-logo.png'))) {
+                    $brandLogoUrl = asset('images/evsu-logo.png');
+                }
+            @endphp
+            <div class="brand-badge">
+                @if ($brandLogoUrl)
+                    <img src="{{ $brandLogoUrl }}" alt="{{ env('APP_NAME', 'State University') }} logo" class="brand-logo-image">
+                @else
+                    <span class="brand-mark">{{ strtoupper(substr(env('APP_NAME', 'SU'), 0, 2)) }}</span>
+                @endif
+            </div>
+            <div>
+                <!-- Reads the SYSTEM_SUBTITLE from .env, defaults back to "Campus Security Admin Log" if empty -->
+                <h1>{{ env('SYSTEM_SUBTITLE', 'Campus Security Admin Log') }}</h1>
+                <div class="dashboard-subtitle">
+                    {{ env('APP_NAME', 'Laravel') }} {{ env('SYSTEM_DEPARTMENT', 'Visitor Management Control') }}
+                </div>
+            </div>
+        </div>
         
         <div class="btn-group">
             <!-- Print Logs button now opens the prompt center map logic -->

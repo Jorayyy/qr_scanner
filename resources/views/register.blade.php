@@ -43,6 +43,13 @@
             margin: 0 auto 16px;
             box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
         }
+        .logo-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 7px;
+            box-sizing: border-box;
+        }
         .logo-text {
             color: #0f172a;
             font-weight: 700;
@@ -245,6 +252,24 @@
 <body>
 
     <div class="card">
+        @php
+            $brandLogo = trim((string) env('APP_LOGO', ''));
+            $brandLogoUrl = null;
+            if ($brandLogo) {
+                if (preg_match('/^https?:\/\//i', $brandLogo)) {
+                    $brandLogoUrl = $brandLogo;
+                } elseif (str_starts_with($brandLogo, 'public/')) {
+                    $brandLogoUrl = asset(substr($brandLogo, 7));
+                } elseif (str_starts_with($brandLogo, '/')) {
+                    $brandLogoUrl = asset(ltrim($brandLogo, '/'));
+                } else {
+                    $brandLogoUrl = asset($brandLogo);
+                }
+            }
+            if (! $brandLogoUrl && file_exists(public_path('images/evsu-logo.png'))) {
+                $brandLogoUrl = asset('images/evsu-logo.png');
+            }
+        @endphp
         @if ($errors->any())
             <div style="background-color: rgba(239, 68, 68, 0.2); border: 1px solid rgba(239, 68, 68, 0.4); color: #fca5a5; padding: 14px; border-radius: 8px; font-size: 13px; font-weight: 500; margin-bottom: 20px; text-align: left;">
                 <strong style="display:block; margin-bottom: 4px;">Form Submission Failed:</strong>
@@ -257,7 +282,13 @@
         @endif
 
         <div class="text-center">
-            <div class="logo-circle"><span class="logo-text">{{ strtoupper(substr(env('APP_NAME', 'SU'), 0, 2)) }}</span></div>
+            <div class="logo-circle">
+                @if ($brandLogoUrl)
+                    <img src="{{ $brandLogoUrl }}" alt="{{ env('APP_NAME', 'State University') }} logo" class="logo-image">
+                @else
+                    <span class="logo-text">{{ strtoupper(substr(env('APP_NAME', 'SU'), 0, 2)) }}</span>
+                @endif
+            </div>
             <h1>{{ env('APP_NAME', 'State University') }}</h1>
             <p class="subtitle">{{ env('SYSTEM_DEPARTMENT', 'Visitor Management Control') }} Gateway</p>
             <div class="header-actions">

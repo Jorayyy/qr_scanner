@@ -44,6 +44,15 @@
             margin: 0 auto 16px;
             box-shadow: 0 10px 15px -3px rgba(15, 23, 42, 0.1);
         }
+        .logo-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 7px;
+            box-sizing: border-box;
+            background: #ffffff;
+            border-radius: 14px;
+        }
         .logo-text {
             color: white;
             font-weight: 700;
@@ -63,10 +72,11 @@
             letter-spacing: -0.5px;
         }
         .subtitle { 
-            font-size: 13px; 
-            color: #64748b; 
-            margin: 6px 0 0 0; 
+            font-size: 13px;
+            color: #64748b;
+            margin: 8px 0 0 0;
             font-weight: 400;
+            line-height: 1.4;
         }
         .form-group {
             margin-bottom: 20px;
@@ -222,10 +232,32 @@
   <div class="card">
     <!-- University Branding Header -->
     <div class="text-center">
+        @php
+            $brandLogo = trim((string) env('APP_LOGO', ''));
+            $brandLogoUrl = null;
+            if ($brandLogo) {
+                if (preg_match('/^https?:\/\//i', $brandLogo)) {
+                    $brandLogoUrl = $brandLogo;
+                } elseif (str_starts_with($brandLogo, 'public/')) {
+                    $brandLogoUrl = asset(substr($brandLogo, 7));
+                } elseif (str_starts_with($brandLogo, '/')) {
+                    $brandLogoUrl = asset(ltrim($brandLogo, '/'));
+                } else {
+                    $brandLogoUrl = asset($brandLogo);
+                }
+            }
+            if (! $brandLogoUrl && file_exists(public_path('images/evsu-logo.png'))) {
+                $brandLogoUrl = asset('images/evsu-logo.png');
+            }
+        @endphp
         <div class="logo-circle">
-            <span class="logo-text">
-                {{ strtoupper(substr(env('APP_NAME', 'SU'), 0, 2)) }}
-            </span>
+            @if ($brandLogoUrl)
+                <img src="{{ $brandLogoUrl }}" alt="{{ env('APP_NAME', 'State University') }} logo" class="logo-image">
+            @else
+                <span class="logo-text">
+                    {{ strtoupper(substr(env('APP_NAME', 'SU'), 0, 2)) }}
+                </span>
+            @endif
         </div>
         <h1>Gate Security Terminal</h1>
         <p class="subtitle">Upload a pass photo file or use manual entry fallback</p>

@@ -414,23 +414,27 @@
 <nav style="width: 100%; max-width: 620px; margin: 0 auto 24px auto; background: #ffffff; padding: 12px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 10px 15px -3px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; display: flex; gap: 8px; box-sizing: border-box;">
     
     <!-- Tab 1: Terminal Link (Guards and Admins can ALWAYS see this) -->
-    <a href="{{ route('gate.scanner') }}" style="flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('gate.scanner') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
-        📟 Terminal
+    <a href="{{ route('gate.scanner') }}" style="flex: 1; display: inline-flex; justify-content: center; align-items: center; gap: 6px; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('gate.scanner') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="6" width="16" height="12" rx="2"></rect><path d="M8 10h8"></path><path d="M8 14h4"></path></svg>
+        <span>Terminal</span>
     </a>
 
     <!-- ⭐ SECURE SECURITY LOCK: Only render Dashboard and Users options if the user is an Admin -->
     @if(auth()->check() && auth()->user()->role === 'admin')
         <!-- Tab 2: Dashboard Link -->
-        <a href="{{ route('admin.dashboard') }}" style="flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('admin.dashboard') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
-            📊 Dashboard
+        <a href="{{ route('admin.dashboard') }}" style="flex: 1; display: inline-flex; justify-content: center; align-items: center; gap: 6px; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('admin.dashboard') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="20" x2="12" y2="10"></line><line x1="18" y1="20" x2="18" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            <span>Dashboard</span>
         </a>
 
         <!-- Tab 3: Users Control Link -->
-        <a href="{{ route('users.index') }}" style="flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('users.index') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
-            👤 Users
+        <a href="{{ route('users.index') }}" style="flex: 1; display: inline-flex; justify-content: center; align-items: center; gap: 6px; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('users.index') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+            <span>Users</span>
         </a>
-        <a href="{{ route('campus.locations.index') }}" style="flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('campus.locations.index') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
-            🗺️ Locations
+        <a href="{{ route('campus.locations.index') }}" style="flex: 1; display: inline-flex; justify-content: center; align-items: center; gap: 6px; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('campus.locations.index') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 10c0 6-9 12-9 12S3 16 3 10a9 9 0 1 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            <span>Locations</span>
         </a>
     @endif
 </nav>
@@ -610,6 +614,8 @@
             <th style="text-align: center;">Status</th>
             <th style="text-align: center;">Current Location</th>
             <th style="text-align: center;">Tracking History Timeline</th>
+            <th style="text-align: center;">ID Type</th>
+            <th style="text-align: center;">ID Preview</th>
             <th style="text-align: center;">ACTIONS</th>
         </tr>
     </thead>
@@ -706,18 +712,51 @@
             </td>
 
             
+            <td style="text-align: center; vertical-align: middle;">{{ strtoupper($v->id_document_type ?? 'N/A') }}</td>
+            <td style="text-align: center; vertical-align: middle;">
+                @if($v->id_document_path)
+                    @php
+                        $idPreviewUrl = null;
+
+                        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($v->id_document_path)) {
+                            $idPreviewUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($v->id_document_path);
+                        } elseif (\Illuminate\Support\Facades\Storage::disk('local')->exists($v->id_document_path)) {
+                            try {
+                                $idPreviewUrl = \Illuminate\Support\Facades\Storage::disk('local')->temporaryUrl($v->id_document_path, now()->addMinutes(10));
+                            } catch (\Throwable $e) {
+                                $idPreviewUrl = null;
+                            }
+                        }
+                    @endphp
+
+                    @if($idPreviewUrl)
+                        <a href="{{ $idPreviewUrl }}" target="_blank" style="display:inline-block;">
+                            <img src="{{ $idPreviewUrl }}" alt="ID preview" style="width:64px; height:40px; object-fit:cover; border-radius:6px; border:1px solid #e2e8f0;" />
+                        </a>
+                    @else
+                        <span style="color:#94a3b8;">Unavailable</span>
+                    @endif
+                @else
+                    <span style="color:#94a3b8;">—</span>
+                @endif
+            </td>
+
             <!-- ACTION DELETE BUTTON -->
             <td style="text-align: center; vertical-align: middle; width: 100px;">
-                <form action="{{ route('admin.delete-visitor', $v->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this visitor record?');" style="margin:0; display: inline-block;">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="action-delete-btn">Delete</button>
-                </form>
+                @if(auth()->check() && auth()->user()->role === 'admin')
+                    <form action="{{ route('admin.delete-visitor', $v->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to permanently delete this visitor record?');" style="margin:0; display: inline-block;">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" class="action-delete-btn">Delete</button>
+                    </form>
+                @else
+                    <span style="font-size: 12px; color: #64748b; font-weight: 600;">View only</span>
+                @endif
             </td>
         </tr>
     @empty
         <tr>
-            <td colspan="9" style="text-align: center; vertical-align: middle; padding: 24px; color: #64748b; font-weight: 500;">No visitor logs found.</td>
+            <td colspan="11" style="text-align: center; vertical-align: middle; padding: 24px; color: #64748b; font-weight: 500;">No visitor logs found.</td>
         </tr>
     @endforelse
 </tbody>

@@ -4,10 +4,13 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
-use thiagoalessio\TesseractOCR\TesseractOCR; //
+use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
+use thiagoalessio\TesseractOCR\TesseractOCR;
 use Illuminate\Support\Str;
 
 class VisitorIdVerificationController extends Controller
+
 {
     // Render the initial ID upload page view
     public function showUploadPage()
@@ -22,6 +25,10 @@ class VisitorIdVerificationController extends Controller
             'id_verified',
             'verified_first_name',
             'verified_last_name',
+            'id_document_path',
+            'id_document_text',
+            'id_document_type',
+            'id_verified_at',
         ]);
 
         return redirect()->route('visitor.register')->with('success', 'Verification cleared. You can register a new visitor now.');
@@ -38,14 +45,26 @@ class VisitorIdVerificationController extends Controller
             'last_name' => 'required|string|max:255',
         ]);
 
-        // Temporarily store the document locally for processing
-        $path = $request->file('id_image')->getRealPath();
+        // Persist the uploaded ID image to storage for later association with the Visitor
+        $storedPath = $request->file('id_image')->store('ids', 'public');
+        $path = Storage::disk('public')->path($storedPath);
         $idType = $request->input('id_type');
         $inputLastName = strtoupper($request->input('last_name'));
         $inputFirstName = strtoupper($request->input('first_name'));
 
         try {
+            $idGuess = $request->input('id_number_guess');
+
             if (! $this->isTesseractAvailable()) {
+                // If OCR engine not available, still save the uploaded file path and accept EVSU IDs
+                session([
+                    'id_document_path' => $storedPath,
+                    'id_document_text' => null,
+                    'id_document_type' => $idType,
+                    'id_verified_at' => Carbon::now()->toDateTimeString(),
+                    'extracted_id_number' => $idGuess ?? null,
+                ]);
+
                 if ($idType === 'evsu_id') {
                     return $this->approveVerification($request, 'EVSU ID verified using upload fallback.');
                 }
@@ -56,14 +75,14 @@ class VisitorIdVerificationController extends Controller
             // Phase B: Execute Tesseract OCR parsing engine
             $ocrText = (new TesseractOCR($path))
                 ->lang('eng')
-                ->run(); //
+                ->run();
 
             // Convert string to uppercase to make regex parsing easier
             $searchableText = strtoupper($ocrText);
 
             // Phase C: Structural Name Matching Cross-Reference
-            if (!Str::contains($searchableText, $inputLastName) || !Str::contains($searchableText, $inputFirstName)) {
-                return back()->withErrors(['id_image' => 'Verification failed: Last name mismatch on uploaded ID document.']);
+            if (! $this->containsFullNameToken($searchableText, $inputLastName) || ! $this->containsFullNameToken($searchableText, $inputFirstName)) {
+                return back()->withErrors(['id_image' => 'Verification failed: Name mismatch on uploaded ID document.']);
             }
 
             // Phase D: Pattern Matching by supported ID type
@@ -77,6 +96,17 @@ class VisitorIdVerificationController extends Controller
                 return back()->withErrors(['id_image' => $this->formatFailureMessage($idType)]);
             }
 
+            // Store OCR results and metadata in session so the registration step can persist them
+            $extractedIdNumber = $this->extractIdNumber($idType, $ocrText);
+
+            session([
+                'id_document_path' => $storedPath,
+                'id_document_text' => $ocrText,
+                'id_document_type' => $idType,
+                'id_verified_at' => Carbon::now()->toDateTimeString(),
+                'extracted_id_number' => $extractedIdNumber ?? $idGuess ?? null,
+            ]);
+
             return $this->approveVerification($request, 'Identity check passed! Please complete your visit details.');
 
         } catch (\Throwable $e) {
@@ -85,12 +115,61 @@ class VisitorIdVerificationController extends Controller
                 'error' => $e->getMessage(),
             ]);
 
+            // Save upload metadata even when OCR fails (for admin review)
+            session([
+                'id_document_path' => $storedPath,
+                'id_document_text' => null,
+                'id_document_type' => $idType,
+                'id_verified_at' => Carbon::now()->toDateTimeString(),
+                'extracted_id_number' => $idGuess ?? null,
+            ]);
+
             if ($idType === 'evsu_id') {
                 return $this->approveVerification($request, 'EVSU ID verified using upload fallback.');
             }
 
             return back()->withErrors(['id_image' => 'OCR engine failure: Unable to read text clearly. Ensure the photo has no glares.']);
         }
+    }
+
+    /**
+     * Try to extract an ID number from OCR text based on the ID type.
+     */
+    private function extractIdNumber(string $type, string $text): ?string
+    {
+        $text = strtoupper($text);
+
+        $patterns = [
+            'drivers_license' => '/[A-Z]{3}-\d{2}-\d{6}/',
+            'umpid' => '/\d{4}-\d{7}-\d{1}/',
+            'national_id' => '/\d{4}-\d{4}-\d{4}-\d{4}/',
+            'passport' => '/[A-Z]\d{7,8}/',
+            // fallback: look for groups of 5+ digits (for school IDs)
+            'default_digits' => '/\d{5,}/'
+        ];
+
+        if ($type === 'drivers_license' && preg_match($patterns['drivers_license'], $text, $m)) {
+            return $m[0];
+        }
+
+        if ($type === 'umpid' && preg_match($patterns['umpid'], $text, $m)) {
+            return $m[0];
+        }
+
+        if ($type === 'national_id' && preg_match($patterns['national_id'], $text, $m)) {
+            return $m[0];
+        }
+
+        if ($type === 'passport' && preg_match($patterns['passport'], $text, $m)) {
+            return $m[0];
+        }
+
+        // EVSU or other school IDs: try to find longest digit group
+        if (preg_match($patterns['default_digits'], $text, $m)) {
+            return $m[0];
+        }
+
+        return null;
     }
 
     private function approveVerification(Request $request, string $message)
@@ -147,8 +226,8 @@ class VisitorIdVerificationController extends Controller
 
         if ($type === 'evsu_id') {
             return (bool) preg_match($patterns['evsu_id'], $text)
-                && Str::contains($text, $firstName)
-                && Str::contains($text, $lastName);
+                && $this->containsFullNameToken($text, $firstName)
+                && $this->containsFullNameToken($text, $lastName);
         }
 
         // Return true if the specific layout signature is found inside the raw text string
@@ -162,5 +241,25 @@ class VisitorIdVerificationController extends Controller
         }
 
         return "Verification failed: Document format does not match a valid Philippine {$type}.";
+    }
+
+    /**
+     * Require a whole-token match so partial names (e.g., EDRA in EDRALYN) do not pass.
+     */
+    private function containsFullNameToken(string $text, string $name): bool
+    {
+        $normalizedText = preg_replace('/[^A-Z0-9\s]/', ' ', strtoupper($text));
+        $normalizedName = preg_replace('/[^A-Z0-9\s]/', ' ', strtoupper($name));
+
+        $normalizedText = preg_replace('/\s+/', ' ', trim($normalizedText ?? ''));
+        $normalizedName = preg_replace('/\s+/', ' ', trim($normalizedName ?? ''));
+
+        if ($normalizedName === '' || $normalizedText === '') {
+            return false;
+        }
+
+        $pattern = '/\\b' . str_replace(' ', '\\s+', preg_quote($normalizedName, '/')) . '\\b/';
+
+        return (bool) preg_match($pattern, $normalizedText);
     }
 }

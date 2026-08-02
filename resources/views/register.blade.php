@@ -444,6 +444,12 @@
                         </div>
                     </div>
 
+                    <div class="verification-full">
+                        <label>ID Number (if visible on the card) <span class="optional-mark">(optional)</span></label>
+                        <input type="text" name="id_number_guess" placeholder="e.g., 2026-12345" value="{{ old('id_number_guess') }}" autocomplete="off">
+                        <p class="field-hint">If the ID number is clearly visible, type it here so it can pre-fill the registration form (useful when OCR is unavailable).</p>
+                    </div>
+
                     <button type="submit" class="submit-btn" style="margin-top: 14px;">Scan & Verify Identity</button>
                 </form>
             </div>
@@ -516,9 +522,9 @@
                     <input type="text" name="contact_number" placeholder="09123456789" value="{{ old('contact_number') }}" required autocomplete="off">
                 </div>
                  
-                <div class="form-group">
+                    <div class="form-group">
                     <label for="id_number">ID Number <span class="optional-mark">(optional)</span></label>
-                    <input type="text" name="id_number" id="id_number" placeholder="e.g., 2026-12345" value="{{ old('id_number') }}" autocomplete="off">
+                    <input type="text" name="id_number" id="id_number" placeholder="e.g., 2026-12345" value="{{ old('id_number', session('extracted_id_number', '')) }}" autocomplete="off">
                 </div>
             </div>
 

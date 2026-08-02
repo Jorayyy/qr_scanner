@@ -33,11 +33,21 @@ class Visitor extends Model
         'vehicle_model',
         'vehicle_plate',
         'vehicle_color'
+        ,
+        // ID document storage and pass expiry
+        'pass_expires_at',
+        'id_document_path',
+        'id_document_text',
+        'id_document_type',
+        'id_verified_at',
+        'id_verified_by'
     ];
 
     protected $casts = [
         'checked_in_at' => 'datetime',
         'checked_out_at' => 'datetime',
+        'pass_expires_at' => 'datetime',
+        'id_verified_at' => 'datetime',
     ];
 
     /**

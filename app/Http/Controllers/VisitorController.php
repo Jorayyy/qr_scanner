@@ -7,6 +7,8 @@ use App\Models\Visitor;
 use App\SimpleQR;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Carbon\Carbon;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth; // ⭐ FIXED: Moved to top
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
@@ -74,26 +76,11 @@ class VisitorController extends Controller
         $uniqueToken = Str::uuid()->toString();
 
         if ($visitor) {
-            // 3a. PROFILE RECYCLING: Update the historical record with their fresh trip requirements
-            $visitor->update([
-                'purpose_of_visit' => $request->purpose_of_visit,
-                'person_to_visit'  => $request->person_to_visit,
-                'office_to_visit'  => $request->office_to_visit,
-                'vehicle_type'     => $request->vehicle_type,
-                'vehicle_brand'    => $request->vehicle_type === 'none' ? null : $request->vehicle_brand,
-                'vehicle_model'    => $request->vehicle_type === 'none' ? null : $request->vehicle_model,
-                'vehicle_plate'    => $request->vehicle_type === 'none' ? null : $request->vehicle_plate,
-                'vehicle_color'    => $request->vehicle_type === 'none' ? null : $request->vehicle_color,
-                'qr_code_token'    => $uniqueToken,
-                'status'           => 'pending',
-                'current_location' => 'Main Gate',
-                'checked_in_at'    => null,
-                'checked_out_at'   => null
-            ]);
+            // If visitor already exists, redirect them to the reissue form instead
+            return redirect()->route('visitor.reissue.form')->with(["id_number" => $visitor->id_number, 'info' => 'Existing profile found — please reissue a pass instead.']);
         } else {
             // 3b. NEW ENTRY: First time visitor onboarding scenario
             $idNumber = $request->id_number ?: 'GUEST-' . date('Ymd') . '-' . strtoupper(Str::random(4));
-            
             $visitor = Visitor::create([
                 'first_name'       => $request->first_name,
                 'middle_name'      => $request->middle_name,
@@ -110,7 +97,13 @@ class VisitorController extends Controller
                 'vehicle_color'    => $request->vehicle_type === 'none' ? null : $request->vehicle_color,
                 'qr_code_token'    => $uniqueToken,
                 'status'           => 'pending',
-                'current_location' => 'Main Gate'
+                'current_location' => 'Main Gate',
+                'pass_expires_at'  => Carbon::now()->addWeek(),
+                'id_document_path' => session('id_document_path'),
+                'id_document_text' => session('id_document_text'),
+                'id_document_type' => session('id_document_type'),
+                'id_verified_at'   => session('id_verified_at') ? Carbon::parse(session('id_verified_at')) : null,
+                'id_verified_by'   => auth()->check() ? auth()->id() : null,
             ]);
         }
 
@@ -124,6 +117,9 @@ class VisitorController extends Controller
         } catch (\Exception $e) {
             // Log error internally if needed, fails gracefully so the user still gets their pass
         }
+
+        // Clear any stored ID session data after persisting
+        session()->forget(['id_document_path', 'id_document_text', 'id_document_type', 'id_verified_at']);
 
         // ✅ REDIRECT TO PERMANENT PASS HUB URL
         return redirect()->route('visitor.live.pass', ['token' => $visitor->qr_code_token]);
@@ -212,6 +208,10 @@ $vehiclesInside = Visitor::where('status', 'checked_in')
     // 5. Delete a specific visitor record permanently
     public function destroyVisitor($id)
     {
+        if (! auth()->check() || auth()->user()->role !== 'admin') {
+            abort(403, 'Unauthorized action.');
+        }
+
         $visitor = Visitor::findOrFail($id);
         $visitor->movements()->delete(); 
         $visitor->delete();
@@ -284,6 +284,11 @@ $vehiclesInside = Visitor::where('status', 'checked_in')
             'vehicle_color'    => $request->vehicle_type === 'none' ? null : $request->vehicle_color,
             'status'           => 'pending', // Reset status to pending for their new gate entry scan
             'qr_code_token'    => $uniqueToken,
+            'pass_expires_at'  => Carbon::now()->addWeek(),
+            'id_document_path' => session('id_document_path') ?? $visitor->id_document_path,
+            'id_document_text' => session('id_document_text') ?? $visitor->id_document_text,
+            'id_document_type' => session('id_document_type') ?? $visitor->id_document_type,
+            'id_verified_at'   => session('id_verified_at') ? Carbon::parse(session('id_verified_at')) : $visitor->id_verified_at,
         ]);
 
         // Log a reissue movement
@@ -326,6 +331,16 @@ $vehiclesInside = Visitor::where('status', 'checked_in')
 
     if (!$visitor) {
         return view('scan-result', ['success' => false, 'title' => 'Invalid Pass', 'message' => 'Token not found.', 'visitor' => null]);
+    }
+
+    // Reject expired passes (1 week validity)
+    if ($visitor->pass_expires_at && Carbon::now()->gt($visitor->pass_expires_at)) {
+        return view('scan-result', [
+            'success' => false,
+            'title' => 'Pass Expired',
+            'message' => 'This QR pass has expired. Please request a reissue.',
+            'visitor' => $visitor,
+        ]);
     }
 
     // Combined string variable to prevent Eloquent writing full_name back to SQLite tables

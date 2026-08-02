@@ -63,8 +63,10 @@ Route::middleware(['auth'])->group(function () {
         return view('gate-scanner', compact('campusLocations'));
     })->name('gate.scanner');
 
-    // Route to delete a visitor record from the dashboard table rows
-    Route::delete('/admin/visitor/{id}', [VisitorController::class, 'destroyVisitor'])->name('admin.delete-visitor');
+    // Route to delete a visitor record from the dashboard table rows (admin only)
+    Route::delete('/admin/visitor/{id}', [VisitorController::class, 'destroyVisitor'])
+        ->middleware('role:admin')
+        ->name('admin.delete-visitor');
 
     // 👤 SYSTEM USER MANAGEMENT SUB-ROUTES (Add, Edit, View Guards/Admins)
     Route::get('/admin/users', [UserController::class, 'index'])->name('users.index');

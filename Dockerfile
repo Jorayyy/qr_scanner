@@ -14,6 +14,10 @@ RUN apk add --no-cache \
     git \
     ttf-dejavu \
     fontconfig \
+    tesseract-ocr \
+    tesseract-ocr-lang-eng \
+    leptonica-dev \
+    tesseract-dev \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_pgsql pdo_mysql pdo_sqlite gd
 
@@ -32,7 +36,8 @@ RUN sed -i 's/user nginx;/user www-data;/g' /etc/nginx/nginx.conf || true
 
 # 5. Run standard installation and prepare database directory structure explicitly
 ENV COMPOSER_ALLOW_SUPERUSER=1
-RUN composer install --no-interaction --optimize-autoloader \
+RUN composer require --no-interaction thiagoalessio/tesseract_ocr || true \
+    && composer install --no-interaction --optimize-autoloader \
     && mkdir -p database storage/framework/cache/data storage/framework/sessions storage/framework/views storage/logs \
     && rm -f database/database.sqlite \
     && touch database/database.sqlite

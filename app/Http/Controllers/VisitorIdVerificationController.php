@@ -260,6 +260,27 @@ class VisitorIdVerificationController extends Controller
 
         $pattern = '/\\b' . str_replace(' ', '\\s+', preg_quote($normalizedName, '/')) . '\\b/';
 
-        return (bool) preg_match($pattern, $normalizedText);
+        // First pass: exact whole-token/phrase match.
+        if ((bool) preg_match($pattern, $normalizedText)) {
+            return true;
+        }
+
+        // OCR tolerance for single-token names only (e.g., ABEN1O vs ABENIO).
+        // Keeps truncation blocked: short fragments like EDRA won't match EDRALYN.
+        if (! str_contains($normalizedName, ' ') && strlen($normalizedName) >= 5) {
+            $tokens = preg_split('/\s+/', $normalizedText) ?: [];
+
+            foreach ($tokens as $token) {
+                if ($token === '') {
+                    continue;
+                }
+
+                if (abs(strlen($token) - strlen($normalizedName)) <= 1 && levenshtein($token, $normalizedName) <= 1) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
     }
 }

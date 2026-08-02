@@ -1,23 +1,27 @@
 FROM composer:2.8 as composer
-FROM php:8.4-fpm-alpine
+FROM php:8.4-fpm
 
-# 1. Install system development libraries for QR codes, PostgreSQL, SQLite, and System Fonts
-RUN apk add --no-cache \
-    nginx \
-    libpng-dev \
-    libjpeg-turbo-dev \
-    freetype-dev \
-    sqlite-dev \
-    postgresql-dev \
-    zip \
-    unzip \
-    git \
-    ttf-dejavu \
-    fontconfig \
-    tesseract-ocr \
-    tesseract-ocr-lang-eng \
-    leptonica-dev \
-    tesseract-dev \
+# 1. Install system development libraries for QR codes, PostgreSQL, SQLite, system fonts and Tesseract
+ENV DEBIAN_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        nginx \
+        build-essential \
+        libpng-dev \
+        libjpeg-dev \
+        libfreetype6-dev \
+        libsqlite3-dev \
+        libpq-dev \
+        zip \
+        unzip \
+        git \
+        fonts-dejavu-core \
+        fontconfig \
+        libleptonica-dev \
+        libtesseract-dev \
+        tesseract-ocr \
+        tesseract-ocr-eng \
+    && rm -rf /var/lib/apt/lists/* \
     && docker-php-ext-configure gd --with-freetype --with-jpeg \
     && docker-php-ext-install pdo_pgsql pdo_mysql pdo_sqlite gd
 
@@ -29,7 +33,7 @@ COPY . .
 
 # 3. Inject our custom Nginx port configuration mapping file
 RUN mkdir -p /run/nginx \
-    && cp nginx.conf /etc/nginx/http.d/default.conf
+    && cp nginx.conf /etc/nginx/conf.d/default.conf
 
 # 4. THE SYSTEM USER ALIGNMENT FIX: Force Nginx to run as www-data globally
 RUN sed -i 's/user nginx;/user www-data;/g' /etc/nginx/nginx.conf || true

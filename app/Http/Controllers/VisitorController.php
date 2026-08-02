@@ -249,6 +249,10 @@ $vehiclesInside = Visitor::where('status', 'checked_in')
 
         $userInput = trim($request->id_number);
 
+        // Generate a fresh QR token for reissued passes so each reissue creates
+        // a new unique QR code rather than reusing the previous one.
+        $uniqueToken = Str::uuid()->toString();
+
         // 2. 🔄 SMART SEARCH: Accept exact ID match or full-name / partial-name lookup
         $normalizedInput = strtolower(preg_replace('/\s+/', ' ', $userInput));
         $visitor = Visitor::query()
@@ -267,7 +271,8 @@ $vehiclesInside = Visitor::where('status', 'checked_in')
             return back()->withErrors(['id_number' => 'No visitor record found matching that Name or ID Number.'])->withInput();
         }
 
-        // 3. UPDATE the existing record with their fresh purpose and transport details
+        // 3. UPDATE the existing record with their fresh purpose, transport details,
+        //    and a newly generated QR code token to avoid returning the same QR on reissue
         $visitor->update([
             'purpose_of_visit' => $request->purpose_of_visit,
             'person_to_visit'  => $request->person_to_visit,
@@ -278,10 +283,18 @@ $vehiclesInside = Visitor::where('status', 'checked_in')
             'vehicle_plate'    => $request->vehicle_type === 'none' ? null : $request->vehicle_plate,
             'vehicle_color'    => $request->vehicle_type === 'none' ? null : $request->vehicle_color,
             'status'           => 'pending', // Reset status to pending for their new gate entry scan
+            'qr_code_token'    => $uniqueToken,
         ]);
 
-        // ✅ REDIRECT TO PERMANENT PASS HUB URL
-        return redirect()->route('visitor.live.pass', ['token' => $visitor->qr_code_token]);
+        // Log a reissue movement
+        $visitor->movements()->create([
+            'action_type' => 'PASS_REISSUED',
+            'location' => 'Online Gateway',
+            'remarks' => 'Visitor reissued a fresh QR pass.'
+        ]);
+
+        // ✅ REDIRECT TO PERMANENT PASS HUB URL using new token
+        return redirect()->route('visitor.live.pass', ['token' => $uniqueToken]);
     }
 
     // 🆕 Express Pass Hub Profile Live View

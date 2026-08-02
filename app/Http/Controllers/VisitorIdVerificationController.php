@@ -81,8 +81,17 @@ class VisitorIdVerificationController extends Controller
             $searchableText = strtoupper($ocrText);
 
             // Phase C: Structural Name Matching Cross-Reference
-            if (! $this->containsFullNameToken($searchableText, $inputLastName) || ! $this->containsFullNameToken($searchableText, $inputFirstName)) {
+            $firstNameMatches = $this->containsFullNameToken($searchableText, $inputFirstName);
+            $lastNameMatches = $this->containsFullNameToken($searchableText, $inputLastName);
+
+            // Keep strict full-name matching for government IDs.
+            if ($idType !== 'evsu_id' && (! $lastNameMatches || ! $firstNameMatches)) {
                 return back()->withErrors(['id_image' => 'Verification failed: Name mismatch on uploaded ID document.']);
+            }
+
+            // EVSU OCR in production can be noisy: require at least one name token.
+            if ($idType === 'evsu_id' && (! $firstNameMatches && ! $lastNameMatches)) {
+                return back()->withErrors(['id_image' => 'Verification failed: EVSU ID name could not be matched. Please use your exact name and a clearer ID photo.']);
             }
 
             // Phase D: Pattern Matching by supported ID type
@@ -226,8 +235,10 @@ class VisitorIdVerificationController extends Controller
 
         if ($type === 'evsu_id') {
             return (bool) preg_match($patterns['evsu_id'], $text)
-                && $this->containsFullNameToken($text, $firstName)
-                && $this->containsFullNameToken($text, $lastName);
+                && (
+                    $this->containsFullNameToken($text, $firstName)
+                    || $this->containsFullNameToken($text, $lastName)
+                );
         }
 
         // Return true if the specific layout signature is found inside the raw text string

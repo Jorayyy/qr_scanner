@@ -1,6 +1,7 @@
 #!/bin/sh
 
 # 1. Clear application caches safely
+php artisan optimize:clear
 php artisan config:clear
 php artisan cache:clear
 

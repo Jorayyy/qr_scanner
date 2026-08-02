@@ -68,6 +68,10 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('role:admin')
         ->name('admin.delete-visitor');
 
+    // Route to preview stored visitor ID images safely across environments
+    Route::get('/admin/visitor/{id}/id-preview', [VisitorController::class, 'showVisitorIdPreview'])
+        ->name('admin.visitor-id-preview');
+
     // 👤 SYSTEM USER MANAGEMENT SUB-ROUTES (Add, Edit, View Guards/Admins)
     Route::get('/admin/users', [UserController::class, 'index'])->name('users.index');
     Route::post('/admin/users', [UserController::class, 'store'])->name('users.store');

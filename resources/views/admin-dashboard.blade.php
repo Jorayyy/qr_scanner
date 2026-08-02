@@ -715,27 +715,9 @@
             <td style="text-align: center; vertical-align: middle;">{{ strtoupper($v->id_document_type ?? 'N/A') }}</td>
             <td style="text-align: center; vertical-align: middle;">
                 @if($v->id_document_path)
-                    @php
-                        $idPreviewUrl = null;
-
-                        if (\Illuminate\Support\Facades\Storage::disk('public')->exists($v->id_document_path)) {
-                            $idPreviewUrl = \Illuminate\Support\Facades\Storage::disk('public')->url($v->id_document_path);
-                        } elseif (\Illuminate\Support\Facades\Storage::disk('local')->exists($v->id_document_path)) {
-                            try {
-                                $idPreviewUrl = \Illuminate\Support\Facades\Storage::disk('local')->temporaryUrl($v->id_document_path, now()->addMinutes(10));
-                            } catch (\Throwable $e) {
-                                $idPreviewUrl = null;
-                            }
-                        }
-                    @endphp
-
-                    @if($idPreviewUrl)
-                        <a href="{{ $idPreviewUrl }}" target="_blank" style="display:inline-block;">
-                            <img src="{{ $idPreviewUrl }}" alt="ID preview" style="width:64px; height:40px; object-fit:cover; border-radius:6px; border:1px solid #e2e8f0;" />
-                        </a>
-                    @else
-                        <span style="color:#94a3b8;">Unavailable</span>
-                    @endif
+                    <a href="{{ route('admin.visitor-id-preview', $v->id) }}" target="_blank" style="display:inline-block;">
+                        <img src="{{ route('admin.visitor-id-preview', $v->id) }}" alt="ID preview" style="width:64px; height:40px; object-fit:cover; border-radius:6px; border:1px solid #e2e8f0;" />
+                    </a>
                 @else
                     <span style="color:#94a3b8;">—</span>
                 @endif

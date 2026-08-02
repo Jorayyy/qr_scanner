@@ -219,6 +219,34 @@ $vehiclesInside = Visitor::where('status', 'checked_in')
         return back()->with('success', 'Visitor record deleted successfully!');
     }
 
+    /**
+     * Stream the stored visitor ID image for admin dashboard preview links.
+     */
+    public function showVisitorIdPreview($id)
+    {
+        $visitor = Visitor::findOrFail($id);
+
+        if (! $visitor->id_document_path) {
+            abort(404, 'ID document not found.');
+        }
+
+        $relativePath = ltrim($visitor->id_document_path, '/');
+
+        foreach (['public', 'local'] as $disk) {
+            if (! Storage::disk($disk)->exists($relativePath)) {
+                continue;
+            }
+
+            $absolutePath = Storage::disk($disk)->path($relativePath);
+
+            return response()->file($absolutePath, [
+                'Cache-Control' => 'private, max-age=300',
+            ]);
+        }
+
+        abort(404, 'ID document file is unavailable.');
+    }
+
     // -----------------------------------------------------------------
     // 🆕 RETURNING VISITOR LOOKUP FUNCTIONS
     // -----------------------------------------------------------------

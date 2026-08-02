@@ -206,7 +206,7 @@
 </head>
 <body>
    <!-- REPLACE YOUR EXISTING <nav> BLOCK IN ALL THREE VIEWS WITH THIS SECURE VERSION -->
-<nav style="width: 100%; max-width: 480px; margin: 0 auto 24px auto; background: #ffffff; padding: 12px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 10px 15px -3px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; display: flex; gap: 8px; box-sizing: border-box;">
+<nav style="width: 100%; max-width: 620px; margin: 0 auto 24px auto; background: #ffffff; padding: 12px; border-radius: 16px; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.01), 0 10px 15px -3px rgba(0,0,0,0.02); border: 1px solid #e2e8f0; display: flex; gap: 8px; box-sizing: border-box;">
     
     <!-- Tab 1: Terminal Link (Guards and Admins can ALWAYS see this) -->
     <a href="{{ route('gate.scanner') }}" style="flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('gate.scanner') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
@@ -223,6 +223,11 @@
         <!-- Tab 3: Users Control Link -->
         <a href="{{ route('users.index') }}" style="flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('users.index') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
             👤 Users
+        </a>
+
+        <!-- Tab 4: Campus Locations -->
+        <a href="{{ route('campus.locations.index') }}" style="flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('campus.locations.index') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
+            🗺️ Locations
         </a>
     @endif
 </nav>
@@ -266,13 +271,9 @@
            <div class="form-group">
         <label for="stationLocation">Select Scanning Station Location</label>
         <select id="stationLocation" class="form-select">
-    <option value="Main Gate (Entrance Gate)">Main Gate (Entrance Gate)</option>
-    <option value="Main Gate (Exit Gate)">Main Gate (Exit Gate)</option>
-            
-            <option value="Registrar Office">Registrar's Office</option>
-            <option value="Dean Office">Dean's Office</option>
-            <option value="Accounting Department">Accounting Department</option>
-            <option value="University Library">University Library</option>
+            @foreach($campusLocations as $location)
+                <option value="{{ $location->name }}">{{ $location->name }}</option>
+            @endforeach
         </select>
     </div>
 

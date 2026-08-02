@@ -35,6 +35,8 @@ class DatabaseSeeder extends Seeder
             ]
         );
 
+        $this->call(CampusLocationSeeder::class);
+
         // Keep any other seeders you have below this line...
     }
 }

@@ -1,9 +1,12 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\CampusLocationController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\GateScannerController; 
+use App\Models\CampusLocation;
+use App\Http\Controllers\VisitorIdVerificationController;
 
 // -----------------------------------------------------------------
 // PUBLIC GUEST ROUTES (No Authentication Needed)
@@ -42,10 +45,22 @@ Route::middleware(['auth'])->group(function () {
 
     // The Administration Dashboard Overview Portal URL
     Route::get('/admin/dashboard', [VisitorController::class, 'showAdminDashboard'])->name('admin.dashboard');
+
+    Route::middleware(['role:admin'])->group(function () {
+        Route::get('/admin/campus-locations', [CampusLocationController::class, 'index'])->name('campus.locations.index');
+        Route::post('/admin/campus-locations', [CampusLocationController::class, 'store'])->name('campus.locations.store');
+        Route::put('/admin/campus-locations/{campusLocation}', [CampusLocationController::class, 'update'])->name('campus.locations.update');
+        Route::delete('/admin/campus-locations/{campusLocation}', [CampusLocationController::class, 'destroy'])->name('campus.locations.destroy');
+    });
     
     // The URL path for the camera scanner terminal page
     Route::get('/gate/scanner', function () {
-        return view('gate-scanner');
+        $campusLocations = CampusLocation::active()
+            ->ordered()
+            ->forUsage(['scanner', 'shared'])
+            ->get();
+
+        return view('gate-scanner', compact('campusLocations'));
     })->name('gate.scanner');
 
     // Route to delete a visitor record from the dashboard table rows
@@ -68,3 +83,14 @@ Route::get('/visitor/lookup', [VisitorController::class, 'expressLookup'])->name
 Route::get('/verify-scan/{token}/{location}', [GateScannerController::class, 'processPassTransaction'])
      ->name('gate.verify');
 
+// 1. The separate page showing the ID upload form
+Route::get('/verify-id', [VisitorIdVerificationController::class, 'showUploadPage'])
+    ->name('visitor.verify.upload');
+
+// Reset the verified identity session so a new visitor can be registered
+Route::get('/verify-id/reset', [VisitorIdVerificationController::class, 'resetVerification'])
+    ->name('visitor.verify.reset');
+
+// 2. The endpoint that processes the uploaded image through Tesseract OCR
+Route::post('/verify-id', [VisitorIdVerificationController::class, 'verifyId'])
+    ->name('visitor.verify.process');

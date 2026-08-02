@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CampusLocation;
 use App\Models\Visitor;
 use App\SimpleQR;
 use Illuminate\Http\Request;
@@ -14,8 +15,19 @@ class VisitorController extends Controller
     // 1. Show the registration form page
     public function showRegisterForm()
     {
-        return view('register');
+        $campusLocations = CampusLocation::active()
+            ->ordered()
+            ->forUsage(['visit', 'shared'])
+            ->get();
+
+        return view('register', [
+            'campusLocations' => $campusLocations,
+            'idVerified' => session('id_verified', false),
+            'verifiedFirstName' => session('verified_first_name'),
+            'verifiedLastName' => session('verified_last_name'),
+        ]);
     }
+
 
     // 2. Handle visitor form submission
     public function storeVisitor(Request $request)
@@ -157,6 +169,13 @@ $vehiclesInside = Visitor::where('status', 'checked_in')
         ));
     }
 
+    public function campusLocations()
+    {
+        $campusLocations = CampusLocation::ordered()->get();
+
+        return view('admin.campus-locations', compact('campusLocations'));
+    }
+
     // Show the Secure Login Page
     public function showLoginForm()
     {
@@ -230,10 +249,18 @@ $vehiclesInside = Visitor::where('status', 'checked_in')
 
         $userInput = trim($request->id_number);
 
-        // 2. 🔄 SMART SEARCH: Query SQLite for an exact ID match OR flexible split name segments
-        $visitor = Visitor::where('id_number', $userInput)
-            ->orWhere('first_name', 'LIKE', '%' . $userInput . '%')
-            ->orWhere('last_name', 'LIKE', '%' . $userInput . '%')
+        // 2. 🔄 SMART SEARCH: Accept exact ID match or full-name / partial-name lookup
+        $normalizedInput = strtolower(preg_replace('/\s+/', ' ', $userInput));
+        $visitor = Visitor::query()
+            ->where('id_number', $userInput)
+            ->orWhereRaw(
+                "LOWER(TRIM(COALESCE(first_name, '') || ' ' || COALESCE(middle_name, '') || ' ' || COALESCE(last_name, ''))) LIKE ?",
+                ['%' . $normalizedInput . '%']
+            )
+            ->orWhereRaw(
+                "LOWER(TRIM(COALESCE(first_name, '') || ' ' || COALESCE(last_name, ''))) LIKE ?",
+                ['%' . $normalizedInput . '%']
+            )
             ->first();
 
         if (!$visitor) {

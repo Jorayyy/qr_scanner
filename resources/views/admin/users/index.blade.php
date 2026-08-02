@@ -22,7 +22,7 @@
         /* Locate this section near Line 33 inside resources/views/admin/users/index.blade.php */
             nav {
             width: 100%; 
-            max-width: 480px; /* 👈 CHANGE THIS FROM 600px TO 480px */
+            max-width: 620px;
             margin: 0 auto 24px auto; 
             background: #ffffff; 
             padding: 12px; 
@@ -128,6 +128,9 @@
         <!-- Tab 3: Users Control Link -->
         <a href="{{ route('users.index') }}" style="flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('users.index') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
             👤 Users
+        </a>
+        <a href="{{ route('campus.locations.index') }}" style="flex: 1; text-align: center; padding: 10px; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; border-radius: 8px; text-decoration: none; transition: all 0.15s ease; {{ request()->routeIs('campus.locations.index') ? 'background: #0f172a; color: #ffffff;' : 'background: #f1f5f9; color: #475569;' }}">
+            🗺️ Locations
         </a>
     @endif
 </nav>

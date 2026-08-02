@@ -32,93 +32,126 @@
             box-sizing: border-box;
             text-align: center;
         }
-        
-        /* 🆕 LIVE STATUS BADGES */
-        .status-container {
+
+        .brand-block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 22px;
+        }
+        .logo-circle {
+            width: 104px;
+            height: 104px;
+            border-radius: 28px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.25);
+        }
+        .logo-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            padding: 14px;
+            box-sizing: border-box;
+        }
+        .logo-text {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #ffffff;
+        }
+        .eyebrow {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            border-radius: 20px;
+            justify-content: center;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.08);
+            color: #cbd5e1;
             font-size: 11px;
             font-weight: 700;
+            letter-spacing: 0.4px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
-            margin-bottom: 24px;
         }
-        .status-pending {
-            background: rgba(234, 179, 8, 0.15);
-            color: #fef08a;
-            border: 1px solid rgba(234, 179, 8, 0.3);
+        .hero-copy {
+            margin-bottom: 18px;
         }
-        .status-inside {
-            background: rgba(34, 197, 94, 0.15);
-            color: #bbf7d0;
-            border: 1px solid rgba(34, 197, 94, 0.3);
-        }
-        .status-left {
-            background: rgba(148, 163, 184, 0.15);
-            color: #cbd5e1;
-            border: 1px solid rgba(148, 163, 184, 0.3);
-        }
-
-        /* Clean White QR Box Frame Matrix Area */
-        .qr-frame-box { 
-            display: inline-block; 
-            padding: 16px; 
-            background: #ffffff; 
-            border-radius: 16px; 
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); 
-            margin-bottom: 24px; 
-        }
-        .qr-frame-box svg { display: block; }
         
-        h1 { font-size: 22px; color: #ffffff; margin: 0; font-weight: 700; letter-spacing: -0.5px; }
-        .subtitle { font-size: 13px; color: #cbd5e1; margin-top: 6px; font-weight: 400; }
-        
-        /* Executive Technical Data Details Block */
-        .meta-data-list { border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 16px; margin-bottom: 20px; text-align: left; }
-        .meta-data-row { display: flex; justify-content: space-between; align-items: baseline; padding: 8px 0; font-size: 13px; border-bottom: 1px solid rgba(255, 255, 255, 0.05); }
-        .meta-data-row:last-child { border-bottom: none; }
-        .meta-label { font-size: 11px; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: 0.5px; }
-        .meta-value { font-weight: 600; color: #f8fafc; text-align: right; }
-        
-        /* 🆕 VEHICLE DECLARATION PANEL SECTOR */
-        .vehicle-info-block {
-            background: rgba(30, 41, 59, 0.4);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 14px;
+        .identity-panel {
+            background: rgba(30, 41, 59, 0.38);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
             padding: 14px;
-            margin-bottom: 20px;
+            margin: 18px 0 22px 0;
             text-align: left;
         }
-        .vehicle-title {
+        .identity-title {
             font-size: 11px;
             font-weight: 700;
             color: #94a3b8;
             text-transform: uppercase;
             letter-spacing: 0.5px;
-            margin-bottom: 10px;
-            display: block;
+            margin-bottom: 8px;
         }
-        .vehicle-grid {
+        .identity-name {
+            font-size: 18px;
+            font-weight: 700;
+            color: #ffffff;
+            line-height: 1.25;
+            margin-bottom: 10px;
+        }
+        .identity-meta {
             display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 12px;
-            font-size: 12px;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+        .identity-pill {
+            background: rgba(15, 23, 42, 0.55);
+            border: 1px solid rgba(148, 163, 184, 0.12);
+            border-radius: 10px;
+            padding: 10px 12px;
+        }
+        .identity-pill-label {
+            display: block;
+            font-size: 10px;
+            text-transform: uppercase;
+            color: #94a3b8;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+        .identity-pill-value {
+            font-size: 13px;
+            font-weight: 600;
+            color: #f8fafc;
+            word-break: break-word;
         }
 
-        .bookmark-banner {
-            background: rgba(14, 165, 233, 0.12);
-            border: 1px solid rgba(14, 165, 233, 0.25);
-            color: #bae6fd;
-            padding: 10px 12px;
-            border-radius: 10px;
-            font-size: 11px;
-            line-height: 1.4;
-            margin-bottom: 20px;
-            font-weight: 500;
+        .quick-note {
+            color: #cbd5e1;
+            font-size: 13px;
+            line-height: 1.5;
+            margin: 0 0 18px;
         }
+
+        .qr-frame-box { 
+            display: inline-block; 
+            padding: 18px; 
+            background: #ffffff; 
+            border-radius: 16px; 
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3); 
+            margin-bottom: 18px; 
+            width: fit-content;
+            max-width: 100%;
+        }
+        .qr-frame-box svg { display: block; max-width: 100%; height: auto; }
+        
+        h1 { font-size: 22px; color: #ffffff; margin: 0; font-weight: 700; letter-spacing: -0.5px; }
+        .subtitle { font-size: 13px; color: #cbd5e1; margin-top: 6px; font-weight: 400; }
 
         .action-button-group { display: flex; flex-direction: column; gap: 10px; }
         
@@ -132,111 +165,66 @@
 <body>
 
     <div class="card">
-        <!-- 🆕 LIVE STATUS BADGE TRACKING BANNER -->
-        @if(($visitor->status ?? '') === 'pending')
-            <div class="status-container status-pending">🕒 Pass Status: Pending Entry</div>
-        @elseif(($visitor->status ?? '') === 'checked_in')
-            <div class="status-container status-inside">🟢 Pass Status: Inside Campus</div>
-        @else
-            <div class="status-container status-left">⚪ Pass Status: Left Campus</div>
-        @endif
-        
-        <!-- DYNAMIC CONDITIONAL HEADER BLOCK -->
-        @if(isset($page_status) && $page_status === 'returning')
-            <h1>Welcome Back!</h1>
-            <div class="subtitle">Your entry credentials for {{ env('APP_NAME', 'State University') }} have been reissued.</div>
-        @else
-            <h1>Registration Complete!</h1>
-            <div class="subtitle">Your entry credentials for {{ env('APP_NAME', 'State University') }} have been issued.</div>
-        @endif
+        @php
+            $brandLogo = trim((string) env('APP_LOGO', ''));
+            $brandLogoUrl = null;
+            if ($brandLogo) {
+                if (preg_match('/^https?:\/\//i', $brandLogo)) {
+                    $brandLogoUrl = $brandLogo;
+                } elseif (str_starts_with($brandLogo, 'public/')) {
+                    $brandLogoUrl = asset(substr($brandLogo, 7));
+                } elseif (str_starts_with($brandLogo, '/')) {
+                    $brandLogoUrl = asset(ltrim($brandLogo, '/'));
+                } else {
+                    $brandLogoUrl = asset($brandLogo);
+                }
+            }
+            if (! $brandLogoUrl && file_exists(public_path('images/evsu-logo.png'))) {
+                $brandLogoUrl = asset('images/evsu-logo.png');
+            }
+        @endphp
 
-        <!-- 🆕 DYNAMIC BOOKMARK / SCREENSHOT SAVER BANNER -->
-        <div class="bookmark-banner" style="margin-top: 16px;">
-            📸 <strong>Tip:</strong> Please <strong>Screenshot</strong> or <strong>Bookmark</strong> this page tab so you don't lose your gate scanner code!
+        <div class="brand-block">
+            <div class="logo-circle">
+                @if ($brandLogoUrl)
+                    <img src="{{ $brandLogoUrl }}" alt="{{ env('APP_NAME', 'State University') }} logo" class="logo-image">
+                @else
+                    <span class="logo-text">{{ strtoupper(substr(env('APP_NAME', 'SU'), 0, 2)) }}</span>
+                @endif
+            </div>
+            <div class="eyebrow">Pass Ready</div>
+
+            @if(isset($page_status) && $page_status === 'returning')
+                <h1>Welcome Back</h1>
+            @else
+                <h1>Registration Complete</h1>
+            @endif
+
+            <div class="subtitle">Your QR pass is ready for scanning at the gate.</div>
         </div>
+
+        <div class="identity-panel">
+            <div class="identity-title">Visitor Badge</div>
+            <div class="identity-name">
+                {{ trim(($visitor->first_name ?? '') . ' ' . ($visitor->middle_name ?? '') . ' ' . ($visitor->last_name ?? '')) ?: 'N/A' }}
+            </div>
+            <div class="identity-meta">
+                <div class="identity-pill">
+                    <span class="identity-pill-label">Registration ID</span>
+                    <span class="identity-pill-value">{{ $visitor->id_number ?? 'N/A' }}</span>
+                </div>
+                <div class="identity-pill">
+                    <span class="identity-pill-label">Status</span>
+                    <span class="identity-pill-value">{{ strtoupper($visitor->status ?? 'pending') }}</span>
+                </div>
+            </div>
+        </div>
+
+        <p class="quick-note">Keep this page open or download the QR image below.</p>
 
         <!-- Crisp QR Frame Area Matrix -->
         <div class="qr-frame-box">
             {!! $qrCode !!}
-        </div>
-
-        <!-- Technical Parameters Summary Grid -->
-        <div class="meta-data-list">
-            
-            <!-- 👤 VISITOR NAME ROW CONTAINER -->
-            <div class="meta-data-row">
-                <span class="meta-label">Visitor Name</span>
-                <span class="meta-value" style="font-weight: 700;">
-                    {{-- Safely stitches split columns together on the fly --}}
-                    {{ trim(($visitor->first_name ?? '') . ' ' . ($visitor->middle_name ?? '') . ' ' . ($visitor->last_name ?? '')) ?: 'N/A' }}
-                </span>
-            </div>
-
-            <!-- 🏢 VISITING TARGET TWIN NULLABLE LOGIC ROW CONTAINER -->
-            <div class="meta-data-row">
-                <span class="meta-label">Visiting Target</span>
-                <span class="meta-value" style="font-weight: 700;">
-                    @php
-                        $targetOffice = trim($visitor->office_to_visit ?? '');
-                        $targetPerson = trim($visitor->person_to_visit ?? '');
-                    @endphp
-
-                    @if(!empty($targetOffice) && !empty($targetPerson))
-                        {{ $targetOffice }} <span style="opacity: 0.7; font-weight: 500;">({{ $targetPerson }})</span>
-                    @elseif(!empty($targetOffice))
-                        {{ $targetOffice }}
-                    @elseif(!empty($targetPerson))
-                        {{ $targetPerson }}
-                    @else
-                        <span style="color: #64748b; font-style: italic; font-weight: 500;">General Premises (N/A)</span>
-                    @endif
-                </span>
-            </div>
-
-            <div class="meta-data-row">
-                <span class="meta-label">Purpose of Entry</span>
-                <span class="meta-value">{{ $visitor->purpose_of_visit ?? 'N/A' }}</span>
-            </div>
-            
-            <div class="meta-data-row">
-                <span class="meta-label">Current Tracking</span>
-                <span class="meta-value" style="color: #38bdf8; font-weight: 700;">{{ $visitor->current_location ?? 'Main Gate' }}</span>
-            </div>
-            
-            <!-- 🆕 NEW DYNAMIC VEHICLE TYPE SUMMARY PARAMETER ROW -->
-            <div class="meta-data-row">
-                <span class="meta-label">Vehicle Type</span>
-                <span class="meta-value">
-                    @switch(strtolower(trim($visitor->vehicle_type ?? 'pedestrian')))
-                        @case('pedestrian') 🚶 Pedestrian @break
-                        @case('motorcycle') 🏍️ Motorcycle @break
-                        @case('car') 🚗 Car / Sedan @break
-                        @default {{ ucfirst($visitor->vehicle_type ?? 'Pedestrian') }}
-                    @endswitch
-                </span>
-            </div>
-
-            <!-- 🆕 NEW DYNAMIC VEHICLE SPECIFICATIONS EXTENSION DRAWER VIEW -->
-            @if(!in_array(strtolower(trim($visitor->vehicle_type ?? 'pedestrian')), ['pedestrian', 'none', '']) && ($visitor->vehicle_brand ?? false))
-                <div class="vehicle-info-block" style="margin-top: 12px; font-size: 13px;">
-                    <span class="vehicle-title">Registered Vehicle Metrics</span>
-                    <div class="vehicle-grid">
-                        <div>
-                            <div style="color:#94a3b8; font-size:10px; text-transform:uppercase;">Brand / Model</div>
-                            <div style="font-weight:600; color:#ffffff;">{{ $visitor->vehicle_brand }} ({{ $visitor->vehicle_model ?? 'N/A' }})</div>
-                        </div>
-                        <div>
-                            <div style="color:#94a3b8; font-size:10px; text-transform:uppercase;">Plate & Color</div>
-                            <div style="font-weight:600; color:#ffffff; letter-spacing:0.5px;">{{ strtoupper($visitor->vehicle_plate ?? 'N/A') }} • {{ ucfirst($visitor->vehicle_color ?? 'N/A') }}</div>
-                        </div>
-                    </div>
-                </div>
-            @endif
-            
-            <div class="token-display-field" style="background: rgba(15, 23, 42, 0.4); border: 1px solid rgba(255, 255, 255, 0.08); padding: 10px; border-radius: 8px; margin-top: 12px; text-align: center;">
-                <span class="meta-label" style="display:block; margin-bottom:4px; font-size:10px; text-align:center;">Unique Pass Token ID Code</span>
-                <div class="token-string-text" id="passTokenString" style="font-family: monospace; font-size: 11px; color: #94a3b8; word-break: break-all; user-select: all;">{{ $visitor->qr_code_token ?? 'N/A' }}</div>
-            </div>
         </div>
 
         <!-- Shared Action Button Layout Controls Bundle -->
@@ -247,10 +235,14 @@
                 Download QR Pass Image
             </button>
 
-            <!-- Slate Gray Outline Back Link Navigation Button -->
-            <a href="{{ route('visitor.register') }}" class="back-link-btn">
-                <svg xmlns="http://w3.org" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
-                Register Another Visitor
+            <a href="{{ route('visitor.verify.reset') }}" class="back-link-btn" style="background: rgba(34, 197, 94, 0.12); border-color: rgba(34, 197, 94, 0.25); color: #bbf7d0;">
+                <svg xmlns="http://w3.org" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"></path><path d="M12 3l9 9-9 9"></path></svg>
+                Register New Visitor
+            </a>
+
+            <a href="{{ route('welcome') }}" class="back-link-btn" style="background: rgba(255, 255, 255, 0.05); border-color: rgba(255, 255, 255, 0.16); color: #e2e8f0;">
+                <svg xmlns="http://w3.org" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h18"></path><path d="M8 5l-5 7 5 7"></path></svg>
+                Main Gateway
             </a>
         </div>
     </div>
@@ -281,8 +273,9 @@
                 
                 ctx.drawImage(imageRunner, borderOffsetPadding, borderOffsetPadding);
                 
-                const rawTokenStr = document.getElementById('passTokenString').innerText.trim();
-                const cleanFilename = 'PASS_' + rawTokenStr + '.png';
+                const fallbackName = @json($visitor->id_number ?? $visitor->qr_code_token ?? 'PASS');
+                const rawTokenStr = (document.getElementById('passTokenString')?.innerText || fallbackName).trim();
+                const cleanFilename = 'PASS_' + rawTokenStr.replace(/[^a-z0-9_-]+/gi, '_') + '.png';
                 
                 const downloaderAnchorElement = document.createElement('a');
                 downloaderAnchorElement.download = cleanFilename;

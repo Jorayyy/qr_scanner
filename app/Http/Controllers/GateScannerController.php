@@ -16,9 +16,10 @@ class GateScannerController extends Controller
     {
         // Normalize and clean incoming dynamic scan data parameters
         $cleanToken = trim($token);
-        $stationLocation = strtolower(trim($location)); 
+        $stationLocation = trim($location);
+        $normalizedStation = strtolower($stationLocation);
 
-        Log::info("Gate Terminal Execution Sequence: Evaluating dynamic token input [{$cleanToken}] at gate location [{$stationLocation}]");
+        Log::info("Gate Terminal Execution Sequence: Evaluating dynamic token input [{$cleanToken}] at gate location [{$normalizedStation}]");
 
         // 1. Locate the active record tracking row inside your database table dynamically
         // Searches for whichever code was transmitted by the camera stream
@@ -35,13 +36,22 @@ class GateScannerController extends Controller
 
         // 3. DYNAMIC LIFECYCLE TOGGLE PROCESSING CORE:
         // Reads the current state row from the database directly, with NO hardcoded strings.
-        if ($visitorRecord->status === 'CHECKED_IN') {
+        $currentStatus = strtolower(trim($visitorRecord->status ?? 'pending'));
+        $isEntranceStation = str_contains($normalizedStation, 'entrance') || str_contains($normalizedStation, 'main gate');
+        $isExitStation = str_contains($normalizedStation, 'exit');
+
+        if ($currentStatus === 'checked_in') {
+            if ($isEntranceStation && ! $isExitStation) {
+                Log::warning("Duplicate entrance scan blocked for visitor [{$visitorRecord->id}] at [{$normalizedStation}]");
+                return redirect()->back()->with('error', "This pass is already checked in. Use the exit gate to check out.");
+            }
+
             
             // TRANSACTION: Execute the Check-Out update mutation immediately
             DB::table('visitors')
                 ->where('id', $visitorRecord->id)
                 ->update([
-                    'status' => 'CHECKED_OUT',
+                    'status' => 'checked_out',
                     'current_location' => 'Outside Campus',
                     'updated_at' => now()
                 ]);
@@ -50,19 +60,23 @@ class GateScannerController extends Controller
             DB::table('visitor_logs')->insert([
                 'visitor_id' => $visitorRecord->id,
                 'action'     => 'Checked Out',
-                'station'    => $stationLocation,
+                'station'    => $normalizedStation,
                 'logged_at'  => now()
             ]);
 
             return redirect()->back()->with('success', "Check-Out Verified successfully for {$visitorRecord->name}. Gate clears.");
             
         } else {
+
+            if (! $isEntranceStation && ! $isExitStation) {
+                return redirect()->back()->with('error', 'Scan at the entrance or exit gate to process this pass.');
+            }
             
             // TRANSACTION: If they aren't checked in yet, process a fresh Check-In update pass instead
             DB::table('visitors')
                 ->where('id', $visitorRecord->id)
                 ->update([
-                    'status'           => 'CHECKED_IN',
+                    'status'           => 'checked_in',
                     'current_location' => $stationLocation,
                     'updated_at'       => now()
                 ]);
@@ -71,7 +85,7 @@ class GateScannerController extends Controller
             DB::table('visitor_logs')->insert([
                 'visitor_id' => $visitorRecord->id,
                 'action'     => 'Checked In',
-                'station'    => $stationLocation,
+                'station'    => $normalizedStation,
                 'logged_at'  => now()
             ]);
 

@@ -127,6 +127,18 @@ npm run dev
 
 ---
 
+## ☁️ Railway Deployment Notes
+
+This project can run on Railway as a Docker service.
+
+1. Add a PostgreSQL database service in Railway and connect it to the app.
+2. Set the app environment variables in Railway, especially `APP_KEY`, `APP_URL`, and `DATABASE_URL`.
+3. Keep `SESSION_DRIVER=database` and `CACHE_STORE=database` so sessions and cache survive restarts.
+4. Railway will start the container through the Dockerfile, which now serves the app on the assigned `PORT`.
+5. EVSU ID uploads work without OCR installation; the government ID checks use Tesseract, which is included in the Docker image.
+
+---
+
 ## 📱 Phase 4: Deploying Multi-Office Smart Mobile Tracking Over Wi-Fi
 
 To connect physical smartphones (like a guard's mobile or a department clerk's device) straight to your host server without any cloud hosting fees, follow these steps:

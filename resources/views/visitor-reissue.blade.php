@@ -269,12 +269,12 @@
                 @endif
             </div>
             <h1>Express Pass Lookup</h1>
-            <p class="subtitle">Provide your ID and current visiting purpose to refresh your pass.</p>
+            <p class="subtitle">Provide your registered name or ID number and current visit details to refresh your pass.</p>
         </div>
 
         <!-- NEW DYNAMIC WARNING BANNER FROM GLASSMORPHISM SYSTEM -->
         <div class="warning-banner">
-            ⚠️ <strong>Note:</strong> Outside guests/parents without a school ID must register as a new visitor.
+            ⚠️ <strong>Note:</strong> This lookup uses your registered name or ID number. If you are a first-time guest, use New Visitor Registration instead.
         </div>
 
         @if ($errors->any())
